@@ -2,8 +2,6 @@
 
 namespace Toilal\Doctrine\Migrations\Liquibase;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
-
 class LiquibaseOutputOptions
 {
     /**

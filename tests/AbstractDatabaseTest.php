@@ -57,7 +57,7 @@ abstract class AbstractDatabaseTest extends TestCase
     protected function changeLog($options = null)
     {
         $schemaTool = new LiquibaseSchemaTool($this->em);
-        $output = $schemaTool->changeLog()->saveXML();
+        $output = $schemaTool->changeLog($options)->saveXML();
         return $output;
     }
     
@@ -70,7 +70,7 @@ abstract class AbstractDatabaseTest extends TestCase
     protected function diffChangeLog($options = null)
     {
         $schemaTool = new LiquibaseSchemaTool($this->em);
-        $output = $schemaTool->diffChangeLog()->saveXML();
+        $output = $schemaTool->diffChangeLog($options)->saveXML();
         return $output;
     }
 

@@ -5,6 +5,7 @@ namespace Toilal\Doctrine\Migrations\Liquibase;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
 
 class LiquibaseSchemaTool extends SchemaTool
@@ -25,22 +26,50 @@ class LiquibaseSchemaTool extends SchemaTool
     }
 
     /**
-     * Generate a diff changelog from differences between actual database state and doctrine metadata.
-     * 
-     * @param array|null $metadata
-     * @param LiquibaseOutput|null $output
-     * @return \DOMDocument|mixed
-     * @throws \Doctrine\ORM\ORMException
+     * @param LiquibaseOutput|LiquibaseOutputOptions|null $output $output
+     *
+     * @return LiquibaseOutput
      */
-    public function diffChangeLog($metadata = null, $output = null)
+    private function sanitizeOutputParameter($output = null)
+    {
+        if ($output instanceof LiquibaseOutputOptions) {
+            return new LiquibaseDOMDocumentOuput($output);
+        } else if ($output instanceof LiquibaseOutput) {
+            return $output;
+        }
+        return new LiquibaseDOMDocumentOuput();
+    }
+
+    /**
+     * @param array|null $metadata $metadata
+     *
+     * @return array
+     */
+    private function sanitizeMetadatas($metadata = null)
     {
         if (!$metadata) {
             $metadata = $this->em->getMetadataFactory()->getAllMetadata();
         }
-        
-        if (!$output) {
-            $output = new LiquibaseDOMDocumentOuput();
-        }
+        usort($metadata, function ($a, $b) {
+            /** @var ClassMetadata $a */
+            /** @var ClassMetadata $b */
+            return strcmp($a->getName(), $b->getName());
+        });
+        return $metadata;
+    }
+
+    /**
+     * Generate a diff changelog from differences between actual database state and doctrine metadata.
+     *
+     * @param LiquibaseOutput|LiquibaseOutputOptions|null $output
+     * @param array|null $metadata
+     * @return \DOMDocument|mixed
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function diffChangeLog($output = null, $metadata = null)
+    {
+        $output = $this->sanitizeOutputParameter($output);
+        $metadata = $this->sanitizeMetadatas($metadata);
 
         $sm = $this->em->getConnection()->getSchemaManager();
 
@@ -57,20 +86,15 @@ class LiquibaseSchemaTool extends SchemaTool
     /**
      * Generate a full changelog from doctrine metadata.
      *
-     * @param array|null $metadata Doctrine metadata
-     * @param LiquibaseOutput|null $output
+     * @param LiquibaseOutput|LiquibaseOutputOptions|null $output
+     * @param array|null $metadata
      * @return \DOMDocument|mixed
      * @throws \Doctrine\ORM\ORMException
      */
-    public function changeLog($metadata = null, $output = null)
+    public function changeLog($output = null, $metadata = null)
     {
-        if (!$metadata) {
-            $metadata = $this->em->getMetadataFactory()->getAllMetadata();
-        }
-        
-        if (!$output) {
-            $output = new LiquibaseDOMDocumentOuput();
-        }
+        $output = $this->sanitizeOutputParameter($output);
+        $metadata = $this->sanitizeMetadatas($metadata);
 
         $schema = $this->getSchemaFromMetadata($metadata);
         $liquibaseVisitor = new LiquibaseSchemaVisitor($output);
@@ -85,14 +109,12 @@ class LiquibaseSchemaTool extends SchemaTool
      * Generate a diff changelog from SchemaDiff object.
      *
      * @param SchemaDiff $schemaDiff
-     * @param LiquibaseOutput|null $output
+     * @param LiquibaseOutput|LiquibaseOutputOptions|null $output
      * @return \DOMDocument|mixed
      */
     public function diffChangeLogFromSchemaDiff(SchemaDiff $schemaDiff, $output = null)
     {
-        if (!$output) {
-            $output = new LiquibaseDOMDocumentOuput();
-        }
+        $output = $this->sanitizeOutputParameter($output);
 
         $output->started($this->em);
 

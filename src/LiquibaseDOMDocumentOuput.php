@@ -289,7 +289,6 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         $createTableElt->setAttribute('tableName', $tableName->getName());
 
         $indexColumns = new IndexColumns($table);
-        $uniqueColumns = $indexColumns->getUniqueColumns();
 
         foreach ($table->getColumns() as $column) {
             $columnElt = $this->document->createElement('column');

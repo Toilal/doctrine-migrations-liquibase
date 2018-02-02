@@ -3,6 +3,9 @@
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
 
 
+/**
+ * @group docker
+ */
 class MySQLTest extends AbstractDatabaseTest
 {
     protected function getConnectionParameters()
@@ -71,7 +74,7 @@ class MySQLTest extends AbstractDatabaseTest
 
 EOT;
 
-        self::assertEquals($expected, $output);
+        self::assertXmlStringEqualsXmlString($expected, $output);
     }
     
     
@@ -122,6 +125,6 @@ EOT;
 
 EOT;
 
-        self::assertEquals($expected, $output);
+        self::assertXmlStringEqualsXmlString($expected, $output);
     }
 }

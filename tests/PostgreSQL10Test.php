@@ -2,7 +2,9 @@
 
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
 
-
+/**
+ * @group docker
+ */
 class PostgreSQL10Test extends AbstractDatabaseTest
 {
     protected function getConnectionParameters()
@@ -71,7 +73,7 @@ class PostgreSQL10Test extends AbstractDatabaseTest
 
 EOT;
 
-        self::assertEquals($expected, $output);
+        self::assertXmlStringEqualsXmlString($expected, $output);
     }
     
     /**
@@ -121,6 +123,6 @@ EOT;
 
 EOT;
 
-        self::assertEquals($expected, $output);
+        self::assertXmlStringEqualsXmlString($expected, $output);
     }
 }

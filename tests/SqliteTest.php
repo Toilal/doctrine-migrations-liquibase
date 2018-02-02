@@ -68,7 +68,7 @@ class SqliteTest extends AbstractDatabaseTest
 
 EOT;
 
-        self::assertEquals($expected, $output);
+        self::assertXmlStringEqualsXmlString($expected, $output);
     }
     
     /**
@@ -118,6 +118,6 @@ EOT;
 
 EOT;
 
-        self::assertEquals($expected, $output);
+        self::assertXmlStringEqualsXmlString($expected, $output);
     }
 }
