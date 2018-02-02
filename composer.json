@@ -1,0 +1,27 @@
+{
+    "name": "toilal/doctrine-migrations-liquibase",
+    "description": "Doctrine Migrations for Liquibase output",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rémi Alvergnat",
+            "email": "toilal.dev@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "Toilal\\Doctrine\\Migrations\\Liquibase\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Tests\\Toilal\\Doctrine\\Migrations\\Liquibase\\": "tests/" }
+    },
+    "require": {
+        "php": ">=5.6",
+        "doctrine/orm": "^2"
+    },
+    "require-dev": {
+        "php": ">=7",
+        "phpstan/phpstan": "^0.9.2",
+        "phpunit/phpunit": "^6"
+    }
+}

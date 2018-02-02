@@ -1,0 +1,56 @@
+version: "2"
+services:
+  php:
+    build:
+      context: .docker/php
+      args:
+        http_proxy: ${http_proxy}
+        https_proxy: ${https_proxy}
+        no_proxy: ${no_proxy}
+    environment:
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}
+      - XDEBUG_CONFIG=idekey=remote-debug remote_host=${HOST_IP}
+    volumes:
+      - ".:/var/www/html"
+      - "composer-cache:/composer/cache"
+  php5:
+    build:
+      context: .docker/php5
+      args:
+        http_proxy: ${http_proxy}
+        https_proxy: ${https_proxy}
+        no_proxy: ${no_proxy}
+    environment:
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}
+      - XDEBUG_CONFIG=idekey=remote-debug remote_host=${HOST_IP}
+    volumes:
+      - ".:/var/www/html"
+      - "composer-cache-php5:/composer/cache"
+  postgres-10:
+    image: postgres:10
+    environment:
+      - POSTGRES_USER=test
+    volumes:
+      - "postgresql-10:/var/lib/postgresql/data"
+  postgres-9:
+    image: postgres:9
+    environment:
+      - POSTGRES_USER=test
+    volumes:
+      - "postgresql-9:/var/lib/postgresql/data"
+  mysql:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=test
+      - MYSQL_DATABASE=test
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=test
+volumes:
+  composer-cache-php5: ~
+  composer-cache: ~
+  postgresql-10: ~
+  postgresql-9: ~

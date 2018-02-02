@@ -1,2 +1,2 @@
 # doctrine-migrations-liquibase
-Liquibase output for Doctrine Migrations
+Generate Liquibase ChangeLog from Doctrine Entities.
