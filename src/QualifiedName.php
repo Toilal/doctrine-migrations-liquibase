@@ -45,13 +45,13 @@ class QualifiedName
 
     /**
      * AssetName constructor.
-     * @param string|null $name
-     * @param $namespaceName
+     * @param string $name
+     * @param string|null $namespaceName
      */
-    public function __construct($name, $namespaceName)
+    public function __construct($name, $namespaceName = null)
     {
-        $this->namespaceName = $namespaceName;
         $this->name = $name;
+        $this->namespaceName = $namespaceName;
     }
 
     /**

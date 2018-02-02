@@ -35,17 +35,40 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
     /**
      * LiquibaseDOMDocumentOuput constructor.
      *
-     * @param \DOMDocument $document
      * @param LiquibaseOutputOptions|null $options
+     * @param \DOMDocument|null $document
      */
-    public function __construct(\DOMDocument $document, $options = null)
+    public function __construct($options = null, $document = null)
     {
-        $this->document = $document;
-
         if (!$options) {
             $options = new LiquibaseOutputOptions();
         }
         $this->options = $options;
+
+        if (!$document) {
+            $document = new \DOMDocument();
+            $document->preserveWhiteSpace = false;
+            $document->formatOutput = true;
+            $this->document = $document;
+        } else {
+            $this->document = $document;
+        }
+    }
+
+    /**
+     * @return \DOMDocument
+     */
+    public function getDocument()
+    {
+        return $this->document;
+    }
+
+    /**
+     * @return \DOMDocument
+     */
+    public function getResult()
+    {
+        return $this->document;
     }
 
     /**
@@ -426,7 +449,7 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
      */
     protected function alterTableRenameTable(TableDiff $tableDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt)
     {
-        if ($tableDiff->newName && $fromTableName->getName() !== $tableDiff->newName) {
+        if (is_string($tableDiff->newName) && $fromTableName->getName() !== $tableDiff->newName) {
             $renameTable = $this->document->createElement('renameTable');
 
             if ($fromTableName->getNamespaceName()) {
@@ -445,11 +468,11 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
     /**
      * @param TableDiff $tableDiff
      *
-     * @param $fromTableName
-     * @param $indexColumns
-     * @param $changeSetElt
+     * @param QualifiedName $fromTableName
+     * @param IndexColumns $indexColumns
+     * @param \DOMElement $changeSetElt
      */
-    protected function alterTableAddedColumns(TableDiff $tableDiff, $fromTableName, $indexColumns, $changeSetElt)
+    protected function alterTableAddedColumns(TableDiff $tableDiff, QualifiedName $fromTableName, IndexColumns $indexColumns, \DOMElement $changeSetElt)
     {
         if ($tableDiff->addedColumns && count($tableDiff->addedColumns)) {
             $addColumnElt = $this->document->createElement('addColumn');
@@ -698,6 +721,9 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         $changeSetElt->appendChild($commentElt);
     }
 
+    /**
+     * @param \Doctrine\ORM\EntityManagerInterface $em
+     */
     public function started($em)
     {
         $this->platform = $em->getConnection()->getDatabasePlatform();

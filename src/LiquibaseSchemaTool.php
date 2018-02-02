@@ -25,12 +25,19 @@ class LiquibaseSchemaTool extends SchemaTool
     }
 
     /**
+     * Generate a diff changelog from differences between actual database state and doctrine metadata.
+     * 
      * @param array $classes
-     * @param LiquibaseOutput $output
+     * @param LiquibaseOutput|null $output
+     * @return \DOMDocument|mixed
      * @throws \Doctrine\ORM\ORMException
      */
-    public function getUpdateChangelog(array $classes, LiquibaseOutput $output)
+    public function diffChangeLog(array $classes, $output = null)
     {
+        if (!$output) {
+            $output = new LiquibaseDOMDocumentOuput();
+        }
+
         $sm = $this->em->getConnection()->getSchemaManager();
 
         $fromSchema = $sm->createSchema();
@@ -40,32 +47,45 @@ class LiquibaseSchemaTool extends SchemaTool
         $comparator = new Comparator();
         $schemaDiff = $comparator->compare($fromSchema, $toSchema);
 
-        $this->generateUpdateChangelog($schemaDiff, $output);
-    }
-
-    private function removeLiquibaseTables(Schema $fromSchema)
-    {
-        // TODO: Make this configurable
-        $fromSchema->dropTable('liquibase');
-        $fromSchema->dropTable('liquibase_lock');
+        return $this->diffChangeLogFromSchemaDiff($schemaDiff, $output);
     }
 
     /**
+     * Generate a full changelog from doctrine metadata.
+     *
      * @param array $classes
-     * @param LiquibaseOutput $output
+     * @param LiquibaseOutput|null $output
+     * @return \DOMDocument|mixed
      * @throws \Doctrine\ORM\ORMException
      */
-    public function getCreateChangelog(array $classes, LiquibaseOutput $output)
+    public function changeLog(array $classes, $output = null)
     {
+        if (!$output) {
+            $output = new LiquibaseDOMDocumentOuput();
+        }
+
         $schema = $this->getSchemaFromMetadata($classes);
         $liquibaseVisitor = new LiquibaseSchemaVisitor($output);
         $output->started($this->em);
         $schema->visit($liquibaseVisitor);
         $output->terminated();
+
+        return $output->getResult();
     }
 
-    protected function generateUpdateChangelog(SchemaDiff $schemaDiff, LiquibaseOutput $output)
+    /**
+     * Generate a diff changelog from SchemaDiff object.
+     *
+     * @param SchemaDiff $schemaDiff
+     * @param LiquibaseOutput|null $output
+     * @return \DOMDocument|mixed
+     */
+    public function diffChangeLogFromSchemaDiff(SchemaDiff $schemaDiff, $output = null)
     {
+        if (!$output) {
+            $output = new LiquibaseDOMDocumentOuput();
+        }
+
         $output->started($this->em);
 
         foreach ($schemaDiff->newNamespaces as $newNamespace) {
@@ -101,5 +121,18 @@ class LiquibaseSchemaTool extends SchemaTool
         }
 
         $output->terminated();
+
+        return $output->getResult();
+    }
+
+    private function removeLiquibaseTables(Schema $fromSchema)
+    {
+        // TODO: Make those table names configurable
+        if ($fromSchema->hasTable('liquibase')) {
+            $fromSchema->dropTable('liquibase');
+        }
+        if ($fromSchema->hasTable('liquibase_lock')) {
+            $fromSchema->dropTable('liquibase_lock');
+        }
     }
 }

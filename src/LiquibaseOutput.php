@@ -7,7 +7,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 
 interface LiquibaseOutput
 {
@@ -78,7 +78,7 @@ interface LiquibaseOutput
     public function alterTable($tableDiff);
 
     /**
-     * @param EntityManager $em
+     * @param EntityManagerInterface $em
      * @return void
      */
     public function started($em);
@@ -87,4 +87,9 @@ interface LiquibaseOutput
      * @return void
      */
     public function terminated();
+
+    /**
+     * @return mixed
+     */
+    public function getResult();
 }

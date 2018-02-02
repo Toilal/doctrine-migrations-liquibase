@@ -54,20 +54,25 @@ abstract class AbstractDatabaseTest extends TestCase
      *
      * @throws \Doctrine\ORM\ORMException
      */
-    protected function getCreateChangelog($options = null)
+    protected function changeLog($options = null)
     {
         $metadatas = $this->em->getMetadataFactory()->getAllMetadata();
-
-        $document = new \DOMDocument();
-        $document->preserveWhiteSpace = false;
-        $document->formatOutput = true;
-
-        $out = new LiquibaseDOMDocumentOuput($document, $options);
-
         $schemaTool = new LiquibaseSchemaTool($this->em);
-        $schemaTool->getCreateChangelog($metadatas, $out);
-
-        $output = $document->saveXML();
+        $output = $schemaTool->changeLog($metadatas)->saveXML();
+        return $output;
+    }
+    
+        /**
+     * @param LiquibaseOutputOptions|null $options
+     * @return string
+     *
+     * @throws \Doctrine\ORM\ORMException
+     */
+    protected function diffChangeLog($options = null)
+    {
+        $metadatas = $this->em->getMetadataFactory()->getAllMetadata();
+        $schemaTool = new LiquibaseSchemaTool($this->em);
+        $output = $schemaTool->diffChangeLog($metadatas)->saveXML();
         return $output;
     }
 
