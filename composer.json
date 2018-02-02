@@ -1,6 +1,6 @@
 {
     "name": "toilal/doctrine-migrations-liquibase",
-    "description": "Doctrine Migrations for Liquibase output",
+    "description": "Generate Liquibase ChangeLog from Doctrine Entities",
     "type": "library",
     "license": "MIT",
     "authors": [
