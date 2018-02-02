@@ -56,9 +56,8 @@ abstract class AbstractDatabaseTest extends TestCase
      */
     protected function changeLog($options = null)
     {
-        $metadatas = $this->em->getMetadataFactory()->getAllMetadata();
         $schemaTool = new LiquibaseSchemaTool($this->em);
-        $output = $schemaTool->changeLog($metadatas)->saveXML();
+        $output = $schemaTool->changeLog()->saveXML();
         return $output;
     }
     
@@ -70,9 +69,8 @@ abstract class AbstractDatabaseTest extends TestCase
      */
     protected function diffChangeLog($options = null)
     {
-        $metadatas = $this->em->getMetadataFactory()->getAllMetadata();
         $schemaTool = new LiquibaseSchemaTool($this->em);
-        $output = $schemaTool->diffChangeLog($metadatas)->saveXML();
+        $output = $schemaTool->diffChangeLog()->saveXML();
         return $output;
     }
 

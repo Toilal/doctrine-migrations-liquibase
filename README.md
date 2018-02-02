@@ -7,18 +7,17 @@ Generate Liquibase ChangeLog from Doctrine Entities.
 /** @var Doctrine\ORM\EntityManager $em */
 $em = ...; // Retrieve Doctrine EntityManager as usual in your environment.
 
-$metadata = $em->getMetadataFactory()->getAllMetadata()
+// Create a Liquibase SchemaTool with EntityManager
+$schemaTool = new LiquibaseSchemaTool($this->em);
 
+// Create a changelog that can be used on an empty database to build from scratch.
 /** @var \DOMDocument $doc */
-$createDoc = $schemaTool->changeLog($metadata)->getResult();
-
-// Liquibase ChangeLog that can be used on an empty database to build it from scratch.
+$createDoc = $schemaTool->changeLog()->getResult();
 $echo $createDoc->saveXML();
 
+// Or create a diff changelog that can be used on current database to upgrade it.
 /** @var \DOMDocument $doc */
-$updateDoc = $schemaTool->diffChangeLog($metadata)->getResult();
-
-// Liquibase ChangeLog that can be used on the current database to upgrade it.
+$updateDoc = $schemaTool->diffChangeLog()->getResult();
 $echo $updateDoc->saveXML();
 ```
 

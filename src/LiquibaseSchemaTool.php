@@ -27,13 +27,17 @@ class LiquibaseSchemaTool extends SchemaTool
     /**
      * Generate a diff changelog from differences between actual database state and doctrine metadata.
      * 
-     * @param array $classes
+     * @param array|null $metadata
      * @param LiquibaseOutput|null $output
      * @return \DOMDocument|mixed
      * @throws \Doctrine\ORM\ORMException
      */
-    public function diffChangeLog(array $classes, $output = null)
+    public function diffChangeLog($metadata = null, $output = null)
     {
+        if (!$metadata) {
+            $metadata = $this->em->getMetadataFactory()->getAllMetadata();
+        }
+        
         if (!$output) {
             $output = new LiquibaseDOMDocumentOuput();
         }
@@ -42,7 +46,7 @@ class LiquibaseSchemaTool extends SchemaTool
 
         $fromSchema = $sm->createSchema();
         $this->removeLiquibaseTables($fromSchema);
-        $toSchema = $this->getSchemaFromMetadata($classes);
+        $toSchema = $this->getSchemaFromMetadata($metadata);
 
         $comparator = new Comparator();
         $schemaDiff = $comparator->compare($fromSchema, $toSchema);
@@ -53,18 +57,22 @@ class LiquibaseSchemaTool extends SchemaTool
     /**
      * Generate a full changelog from doctrine metadata.
      *
-     * @param array $classes
+     * @param array|null $metadata Doctrine metadata
      * @param LiquibaseOutput|null $output
      * @return \DOMDocument|mixed
      * @throws \Doctrine\ORM\ORMException
      */
-    public function changeLog(array $classes, $output = null)
+    public function changeLog($metadata = null, $output = null)
     {
+        if (!$metadata) {
+            $metadata = $this->em->getMetadataFactory()->getAllMetadata();
+        }
+        
         if (!$output) {
             $output = new LiquibaseDOMDocumentOuput();
         }
 
-        $schema = $this->getSchemaFromMetadata($classes);
+        $schema = $this->getSchemaFromMetadata($metadata);
         $liquibaseVisitor = new LiquibaseSchemaVisitor($output);
         $output->started($this->em);
         $schema->visit($liquibaseVisitor);
