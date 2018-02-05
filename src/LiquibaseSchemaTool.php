@@ -17,7 +17,7 @@ class LiquibaseSchemaTool extends SchemaTool
 
     /**
      * LiquibaseSchemaTool constructor.
-     * @param \Doctrine\ORM\EntityManager $em
+     * @param \Doctrine\ORM\EntityManagerInterface $em
      */
     public function __construct($em)
     {
