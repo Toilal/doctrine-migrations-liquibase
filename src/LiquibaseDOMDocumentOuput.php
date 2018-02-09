@@ -204,7 +204,6 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         } else if ($this->options->isUsePlatformTypes()) {
             $sqlType = $column->getType()->getSQLDeclaration($column->toArray(), $this->platform);
             $sqlType = preg_replace('/\(.*?\)/', '', $sqlType);
-            return $sqlType;
         } else {
             $sqlType = $column->getType()->getName();
 
@@ -214,13 +213,13 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
             if ($sqlType === 'float') {
                 $sqlType = 'double';
             }
-
-            if ($column->getLength() !== null) {
-                $sqlType .= '(' . $column->getLength() . ')';
-            };
-
-            return $sqlType;
         }
+
+        if ($column->getLength() !== null) {
+            $sqlType .= '(' . $column->getLength() . ')';
+        };
+
+        return $sqlType;
     }
 
     /**
