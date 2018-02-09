@@ -140,6 +140,10 @@ class LiquibaseSchemaTool extends SchemaTool
 
         foreach ($schemaDiff->newTables as $table) {
             $output->createTable($table);
+            
+            foreach ($table->getForeignKeys() as $foreignKey) {
+                $output->createForeignKey($foreignKey, $table);
+            }
         }
 
         foreach ($schemaDiff->removedTables as $table) {

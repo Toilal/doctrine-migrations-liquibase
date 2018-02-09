@@ -320,14 +320,6 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
             $changeSetElt->appendChild($createIndexElt);
         }
 
-        foreach ($table->getForeignKeys() as $foreignKey) {
-            $addForeignKeyConstraintElt = $this->document->createElement('addForeignKeyConstraint');
-
-            $this->fillForeignKeyAttributes($addForeignKeyConstraintElt, $foreignKey, $table);
-
-            $changeSetElt->appendChild($addForeignKeyConstraintElt);
-        }
-
         $this->root->appendChild($changeSetElt);
     }
 
