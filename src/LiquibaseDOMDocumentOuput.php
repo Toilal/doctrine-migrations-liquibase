@@ -80,7 +80,7 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         $changeSet = $this->document->createElement('changeSet');
         $changeSet->setAttribute('author', $this->options->getChangeSetAuthor());
         $sanitizedId = preg_replace('/[_\.]/', '-', $id);
-        $changeSet->setAttribute('id', $this->options->isChangeSetUniqueId() ? $sanitizedId : $sanitizedId . '-' . uniqid());
+        $changeSet->setAttribute('id', $this->options->isChangeSetUniqueId() ? $sanitizedId . '-' . uniqid() : $sanitizedId );
         $this->root->appendChild($changeSet);
         return $changeSet;
     }
