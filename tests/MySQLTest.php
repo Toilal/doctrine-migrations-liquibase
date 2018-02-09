@@ -1,6 +1,7 @@
 <?php
 
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
+use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 
 
 /**
@@ -29,7 +30,9 @@ class MySQLTest extends AbstractDatabaseTest
      */
     public function testCreateWithDefaultOptions()
     {
-        $output = $this->changeLog();
+        $options = new LiquibaseOutputOptions();
+        $options->setChangeSetUniqueId(false);
+        $output = $this->changeLog($options);
 
         $expected = <<<'EOT'
 <?xml version="1.0"?>
@@ -83,7 +86,9 @@ EOT;
      */
     public function testUpdateFromEmptyDatabaseWithDefaultOptions()
     {
-        $output = $this->diffChangeLog();
+        $options = new LiquibaseOutputOptions();
+        $options->setChangeSetUniqueId(false);
+        $output = $this->diffChangeLog($options);
 
         $expected = <<<'EOT'
 <?xml version="1.0"?>
