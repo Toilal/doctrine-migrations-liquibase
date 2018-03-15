@@ -2,34 +2,32 @@ version: "2"
 services:
   php:
     build:
-      context: .docker/php
-      args:
-        http_proxy: ${http_proxy}
-        https_proxy: ${https_proxy}
-        no_proxy: ${no_proxy}
+      context: .docker
+      dockerfile: php/Dockerfile
     environment:
-      - http_proxy=${http_proxy}
-      - https_proxy=${https_proxy}
-      - no_proxy=${no_proxy}
       - XDEBUG_CONFIG=idekey=remote-debug remote_host=${HOST_IP}
     volumes:
       - ".:/var/www/html"
       - "composer-cache:/composer/cache"
   php5:
     build:
-      context: .docker/php5
-      args:
-        http_proxy: ${http_proxy}
-        https_proxy: ${https_proxy}
-        no_proxy: ${no_proxy}
+      context: .docker
+      dockerfile: php5/Dockerfile
     environment:
-      - http_proxy=${http_proxy}
-      - https_proxy=${https_proxy}
-      - no_proxy=${no_proxy}
       - XDEBUG_CONFIG=idekey=remote-debug remote_host=${HOST_IP}
     volumes:
       - ".:/var/www/html"
       - "composer-cache-php5:/composer/cache"
+  phpstorm-interpreter:
+    build:
+      context: .docker
+      dockerfile: php/Dockerfile
+    entrypoint: php
+    environment:
+      XDEBUG_CONFIG: "idekey=remote-debug remote_host=${HOST_IP}"
+    volumes:
+      - ".:/var/www/html"
+      - "composer-cache:/composer/cache"
   postgres-10:
     image: postgres:10
     environment:

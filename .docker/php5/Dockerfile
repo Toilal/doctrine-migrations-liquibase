@@ -1,10 +1,11 @@
 FROM php:5.6-cli
 MAINTAINER Rémi Alvergnat <toilal.dev@gmail.com>
 
+COPY .ca-certificates/* /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
 RUN apt-get update && apt-get install git zip unzip libsqlite3-dev libpq-dev -y && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-install pdo pdo_sqlite pdo_pgsql pdo_mysql
-
-RUN if [ ! -z "$http_proxy" ]; then pear config-set http_proxy ${http_proxy}; fi;
 
 RUN yes | pecl install xdebug-2.5.5 \
     && echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" > /usr/local/etc/php/conf.d/xdebug.ini \
