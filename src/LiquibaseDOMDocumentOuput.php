@@ -209,9 +209,10 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
 
             if ($sqlType === 'integer') {
                 $sqlType = 'int';
-            }
-            if ($sqlType === 'float') {
+            } elseif ($sqlType === 'float') {
                 $sqlType = 'double';
+            } elseif ($sqlType === 'string') {
+                $sqlType = 'varchar';
             }
         }
 

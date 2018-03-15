@@ -42,7 +42,7 @@ class MySQLTest extends AbstractDatabaseTest
   </changeSet>
   <changeSet author="doctrine-migrations-liquibase" id="create-table-Bar">
     <createTable tableName="Bar">
-      <column name="id" type="string(255)">
+      <column name="id" type="varchar(255)">
         <constraints primaryKey="true" nullable="false"/>
       </column>
     </createTable>
@@ -60,8 +60,8 @@ class MySQLTest extends AbstractDatabaseTest
         <constraints primaryKey="true" nullable="false"/>
       </column>
       <column name="date" type="date"/>
-      <column name="libelle" type="string(255)"/>
-      <column name="commentaire" type="string(255)"/>
+      <column name="libelle" type="varchar(255)"/>
+      <column name="commentaire" type="varchar(500)"/>
     </createTable>
     <createIndex tableName="IndexColumns" indexName="IDX_9BEF3AA1AA9E377A">
       <column name="date"/>
@@ -95,7 +95,7 @@ EOT;
 <databaseChangeLog>
   <changeSet author="doctrine-migrations-liquibase" id="create-table-Bar">
     <createTable tableName="Bar">
-      <column name="id" type="string(255)">
+      <column name="id" type="varchar(255)">
         <constraints primaryKey="true" nullable="false"/>
       </column>
     </createTable>
@@ -113,8 +113,8 @@ EOT;
         <constraints primaryKey="true" nullable="false"/>
       </column>
       <column name="date" type="date"/>
-      <column name="libelle" type="string(255)"/>
-      <column name="commentaire" type="string(255)"/>
+      <column name="libelle" type="varchar(255)"/>
+      <column name="commentaire" type="varchar(500)"/>
     </createTable>
     <createIndex tableName="IndexColumns" indexName="IDX_9BEF3AA1AA9E377A">
       <column name="date"/>

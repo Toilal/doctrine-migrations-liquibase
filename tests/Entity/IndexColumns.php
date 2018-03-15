@@ -42,7 +42,7 @@ class IndexColumns
     /**
      * @var string|null
      *
-     * @ORM\Column(nullable=true)
+     * @ORM\Column(nullable=true, length=500)
      */
     private $commentaire;
 
