@@ -230,8 +230,8 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
      */
     protected function fillColumnAttributes(\DOMElement $columnElt, Column $column, IndexColumns $indexColumns)
     {
-        $columnName = $column->getQuotedName($this->platform);
-        $columnElt->setAttribute('name', $columnName);
+        $columnName = QualifiedName::fromAsset($column);
+        $columnElt->setAttribute('name', $columnName->getName());
         $columnElt->setAttribute('type', $this->getColumnType($column));
         if ($column->getComment()) {
             $columnElt->setAttribute('remarks', $column->getComment());

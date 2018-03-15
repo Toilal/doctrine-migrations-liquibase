@@ -72,6 +72,19 @@ class PostgreSQL10Test extends AbstractDatabaseTest
       <column name="commentaire"/>
     </createIndex>
   </changeSet>
+  <changeset author="doctrine-migrations-liquibase" id="create-table-reservedkeywords">
+    <createtable tablename="ReservedKeywords">
+      <column name="id" type="int">
+        <constraints nullable="false" primarykey="true"/>
+      </column>
+      <column name="from" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column name="to" type="datetime">
+        <constraints nullable="false"/>
+      </column>
+    </createtable>
+  </changeset>
 </databaseChangeLog>
 
 EOT;
@@ -124,6 +137,19 @@ EOT;
       <column name="commentaire"/>
     </createIndex>
   </changeSet>
+  <changeset author="doctrine-migrations-liquibase" id="create-table-reservedkeywords">
+    <createtable tablename="ReservedKeywords">
+      <column name="id" type="int">
+        <constraints nullable="false" primarykey="true"/>
+      </column>
+      <column name="from" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column name="to" type="datetime">
+        <constraints nullable="false"/>
+      </column>
+    </createtable>
+  </changeset>
 </databaseChangeLog>
 
 EOT;
