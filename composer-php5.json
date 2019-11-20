@@ -23,7 +23,6 @@
         "phpunit/phpunit": "^5"
     },
     "scripts": {
-      "lint": "phpstan analyze src tests --level=max",
       "test": "phpunit"
     }
 }

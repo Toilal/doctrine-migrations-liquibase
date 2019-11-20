@@ -13,7 +13,7 @@ use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 
-class LiquibaseDOMDocumentOuput implements LiquibaseOutput
+class LiquibaseDOMDocumentOutput implements LiquibaseOutput
 {
     /**
      * @var \DOMDocument
@@ -80,7 +80,8 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         $changeSet = $this->document->createElement('changeSet');
         $changeSet->setAttribute('author', $this->options->getChangeSetAuthor());
         $sanitizedId = preg_replace('/[_\.]/', '-', $id);
-        $changeSet->setAttribute('id', $this->options->isChangeSetUniqueId() ? $sanitizedId . '-' . uniqid() : $sanitizedId );
+        assert($sanitizedId !== null);
+        $changeSet->setAttribute('id', $this->options->isChangeSetUniqueId() ? $sanitizedId . '-' . uniqid() : $sanitizedId);
         $this->root->appendChild($changeSet);
         return $changeSet;
     }
@@ -186,7 +187,7 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
             $createSequenceElt->setAttribute('schemaName', $sequenceName->getNamespaceName());
         }
         $createSequenceElt->setAttribute('sequenceName', $sequenceName->getName());
-        $createSequenceElt->setAttribute('startValue', $sequence->getInitialValue());
+        $createSequenceElt->setAttribute('startValue', strval($sequence->getInitialValue()));
 
         $changeSetElt->appendChild($createSequenceElt);
         $this->root->appendChild($changeSetElt);
@@ -194,16 +195,18 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
 
     /**
      * @param Column $column
-     * @return null|string|string[]
+     * @return string
      */
     protected function getColumnType(Column $column)
     {
         if ($column->getColumnDefinition()) {
             $sqlType = $column->getColumnDefinition();
+            assert($sqlType !== null);
             return $sqlType;
         } else if ($this->options->isUsePlatformTypes()) {
             $sqlType = $column->getType()->getSQLDeclaration($column->toArray(), $this->platform);
             $sqlType = preg_replace('/\(.*?\)/', '', $sqlType);
+            assert($sqlType !== null);
         } else {
             $sqlType = $column->getType()->getName();
 
@@ -232,12 +235,13 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
     {
         $columnName = QualifiedName::fromAsset($column);
         $columnElt->setAttribute('name', $columnName->getName());
-        $columnElt->setAttribute('type', $this->getColumnType($column));
-        if ($column->getComment()) {
-            $columnElt->setAttribute('remarks', $column->getComment());
+        $columnType = $this->getColumnType($column);
+        $columnElt->setAttribute('type', $columnType);
+        if ($remarks = $column->getComment()) {
+            $columnElt->setAttribute('remarks', $remarks);
         }
-        if ($column->getDefault() !== null) {
-            $columnElt->setAttribute('defaultValue', $column->getDefault());
+        if ($defaultValue = $column->getDefault()) {
+            $columnElt->setAttribute('defaultValue', $defaultValue);
         }
 
         $primaryKey = in_array($column->getName(), $indexColumns->getPrimaryKeyColumns());
@@ -255,13 +259,13 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         if ($primaryKey || !$nullable || $unique) {
             $constraintsElt = $this->document->createElement('constraints');
             if ($primaryKey) {
-                $constraintsElt->setAttribute('primaryKey', $primaryKey ? "true" : "false");
+                $constraintsElt->setAttribute('primaryKey', "true");
             }
             if (!$nullable) {
                 $constraintsElt->setAttribute('nullable', "false");
             }
             if ($unique) {
-                $constraintsElt->setAttribute('unique', $unique ? "true" : "false");
+                $constraintsElt->setAttribute('unique', "true");
             }
             if ($uniqueConstraintName) {
                 $constraintsElt->setAttribute('uniqueConstraintName', $uniqueConstraintName);
@@ -398,6 +402,7 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
      */
     public function alterTable($tableDiff)
     {
+        assert($tableDiff->fromTable !== null);
         $changeSetElt = $this->createChangeSet('alter-table-' . $tableDiff->fromTable->getName());
 
         $fromTableName = QualifiedName::fromAsset($tableDiff->fromTable);
@@ -443,8 +448,8 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         if (is_string($tableDiff->newName) && $fromTableName->getName() !== $tableDiff->newName) {
             $renameTable = $this->document->createElement('renameTable');
 
-            if ($fromTableName->getNamespaceName()) {
-                $renameTable->setAttribute('schemaName', $fromTableName->getNamespaceName());
+            if ($schemaName = $fromTableName->getNamespaceName()) {
+                $renameTable->setAttribute('schemaName', $schemaName);
             }
             $renameTable->setAttribute('oldTableName', $fromTableName->getName());
             $renameTable->setAttribute('newTableName', $tableDiff->newName);
@@ -468,8 +473,8 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         if ($tableDiff->addedColumns && count($tableDiff->addedColumns)) {
             $addColumnElt = $this->document->createElement('addColumn');
 
-            if ($fromTableName->getNamespaceName()) {
-                $addColumnElt->setAttribute('schemaName', $fromTableName->getNamespaceName());
+            if ($schemaName = $fromTableName->getNamespaceName()) {
+                $addColumnElt->setAttribute('schemaName', $schemaName);
             }
             $addColumnElt->setAttribute('tableName', $fromTableName->getName());
 
@@ -495,11 +500,12 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
      */
     protected function alterTableAddedIndexes(TableDiff $tableDiff, QualifiedName $fromTableName, IndexColumns $indexColumns, \DOMElement $changeSetElt)
     {
+        assert($tableDiff->fromTable !== null);
         foreach ($tableDiff->addedIndexes as $index) {
             $createIndexElt = $this->document->createElement('createIndex');
 
-            if ($fromTableName->getNamespaceName()) {
-                $createIndexElt->setAttribute('schemaName', $fromTableName->getNamespaceName());
+            if ($schemaName = $fromTableName->getNamespaceName()) {
+                $createIndexElt->setAttribute('schemaName', $schemaName);
             }
             $createIndexElt->setAttribute('tableName', $fromTableName->getName());
             $createIndexElt->setAttribute('indexName', $index->getName());
@@ -529,6 +535,7 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
      */
     protected function alterTableAddedForeignKeys(TableDiff $tableDiff, \DOMElement $changeSetElt)
     {
+        assert($tableDiff->fromTable !== null);
         foreach ($tableDiff->addedForeignKeys as $foreignKey) {
             $addForeignKeyConstraintElt = $this->document->createElement('addForeignKeyConstraint');
 
@@ -550,8 +557,8 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
 
             $columnName = QualifiedName::fromAsset($column);
 
-            if ($fromTableName->getNamespaceName()) {
-                $renameColumnElt->setAttribute('schemaName', $fromTableName->getNamespaceName());
+            if ($schemaName = $fromTableName->getNamespaceName()) {
+                $renameColumnElt->setAttribute('schemaName', $schemaName);
             }
             $renameColumnElt->setAttribute('tableName', $fromTableName->getName());
             $renameColumnElt->setAttribute('oldColumnName', $oldName);
@@ -586,8 +593,8 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
 
             $columnName = QualifiedName::fromAsset($column);
 
-            if ($fromTableName->getNamespaceName()) {
-                $dropColumnElt->setAttribute('schemaName', $fromTableName->getNamespaceName());
+            if ($schemaName = $fromTableName->getNamespaceName()) {
+                $dropColumnElt->setAttribute('schemaName', $schemaName);
             }
             $dropColumnElt->setAttribute('tableName', $fromTableName->getName());
             $dropColumnElt->setAttribute('columnName', $columnName->getName());
@@ -608,8 +615,8 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
 
             $indexName = QualifiedName::fromAsset($index);
 
-            if ($fromTableName->getNamespaceName()) {
-                $dropIndexElt->setAttribute('schemaName', $fromTableName->getNamespaceName());
+            if ($schemaName = $fromTableName->getNamespaceName()) {
+                $dropIndexElt->setAttribute('schemaName', $schemaName);
             }
             $dropIndexElt->setAttribute('tableName', $fromTableName->getName());
             $dropIndexElt->setAttribute('indexName', $indexName->getName());
@@ -628,10 +635,15 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         foreach ($tableDiff->removedForeignKeys as $foreignKey) {
             $dropForeignKeyConstraintElt = $this->document->createElement('dropForeignKeyConstraint');
 
-            $foreignKeyName = QualifiedName::fromAsset($foreignKey);
 
-            if ($fromTableName->getNamespaceName()) {
-                $dropForeignKeyConstraintElt->setAttribute('baseTableSchemaName', $fromTableName->getNamespaceName());
+            if (is_string($foreignKey)) {
+                $foreignKeyName = $foreignKey;
+            } else {
+                $foreignKeyName = QualifiedName::fromAsset($foreignKey);
+            }
+
+            if ($baseTableSchemaName = $fromTableName->getNamespaceName()) {
+                $dropForeignKeyConstraintElt->setAttribute('baseTableSchemaName', $baseTableSchemaName);
             }
             $dropForeignKeyConstraintElt->setAttribute('baseTableName', $fromTableName->getName());
             $dropForeignKeyConstraintElt->setAttribute('constraintName', $foreignKeyName->getName());
@@ -653,8 +665,8 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         if ($oldColunmName->getName() !== $columnName->getName()) {
             $renameColumnElt = $this->document->createElement('renameColumn');
 
-            if ($fromTableName->getNamespaceName()) {
-                $renameColumnElt->setAttribute('schemaName', $fromTableName->getNamespaceName());
+            if ($schemaName = $fromTableName->getNamespaceName()) {
+                $renameColumnElt->setAttribute('schemaName', $schemaName);
             }
             $renameColumnElt->setAttribute('tableName', $fromTableName->getName());
             $renameColumnElt->setAttribute('oldColumnName', $oldColunmName->getName());
@@ -668,12 +680,12 @@ class LiquibaseDOMDocumentOuput implements LiquibaseOutput
         if ($properties && count($properties)) {
             $typeIndex = array_search('type', $properties);
             if ($typeIndex !== FALSE) {
-                $properties = array_splice($properties, 1, $typeIndex);
+                $properties = array_splice($properties, 1, intval($typeIndex));
 
                 $modifyDataTypeElt = $this->document->createElement('modifyDataType');
 
-                if ($fromTableName->getNamespaceName()) {
-                    $modifyDataTypeElt->setAttribute('schemaName', $fromTableName->getNamespaceName());
+                if ($schemaName = $fromTableName->getNamespaceName()) {
+                    $modifyDataTypeElt->setAttribute('schemaName', $schemaName);
                 }
                 $modifyDataTypeElt->setAttribute('tableName', $fromTableName->getName());
                 $modifyDataTypeElt->setAttribute('columnName', $columnName->getName());

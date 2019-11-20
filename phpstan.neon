@@ -1,0 +1,5 @@
+parameters:
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - '#Call to function is_string\(\) will always evaluate to false\.#'
+        - '#Strict comparison using !== between string and null will always evaluate to true\.#'

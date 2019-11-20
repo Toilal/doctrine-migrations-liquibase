@@ -1,23 +1,41 @@
 <?php
 
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
+
+use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractMySQLTest;
 use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 
 
 /**
  * @group docker
  */
-class MySQLTest extends AbstractDatabaseTest
+class MySQL5Test extends AbstractMySQLTest
 {
-    protected function getConnectionParameters()
+    public function getDockerImage()
     {
-        return [
+        return 'mysql:5';
+    }
+
+    public function getDockerPublishedPort()
+    {
+        return 3306;
+    }
+
+    public function getDockerRunOpts()
+    {
+        return '--health-cmd "mysqladmin ping -h 127.0.0.1 -u test --password=test" --health-interval 1s --health-timeout 5s --health-retries 3 --health-start-period 1s';
+    }
+
+    public function getConnectionParameters()
+    {
+        $connectionParameters = parent::getConnectionParameters();
+        $env = $this->getDockerEnvironmentVariables();
+
+        return array_merge($connectionParameters, [
             'driver' => 'pdo_mysql',
-            'dbname' => 'test',
-            'user' => 'test',
-            'password' => 'test',
-            'host' => 'mysql',
-        ];
+            'dbname' => $env['MYSQL_DATABASE'],
+            'user' => $env['MYSQL_USER'],
+            'password' => $env['MYSQL_PASSWORD']]);
     }
 
     protected function getEntitiesPath()
@@ -73,10 +91,10 @@ class MySQLTest extends AbstractDatabaseTest
       <column name="commentaire"/>
     </createIndex>
   </changeSet>
-  <changeset author="doctrine-migrations-liquibase" id="create-table-reservedkeywords">
-    <createtable tablename="ReservedKeywords">
+  <changeSet author="doctrine-migrations-liquibase" id="create-table-ReservedKeywords">
+    <createTable tableName="ReservedKeywords">
       <column name="id" type="int">
-        <constraints nullable="false" primarykey="true"/>
+        <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="from" type="date">
         <constraints nullable="false"/>
@@ -84,16 +102,16 @@ class MySQLTest extends AbstractDatabaseTest
       <column name="to" type="datetime">
         <constraints nullable="false"/>
       </column>
-    </createtable>
-  </changeset>
+    </createTable>
+  </changeSet>
 </databaseChangeLog>
 
 EOT;
 
         self::assertXmlStringEqualsXmlString($expected, $output);
     }
-    
-    
+
+
     /**
      * @throws \Doctrine\ORM\ORMException
      */
@@ -139,10 +157,10 @@ EOT;
       <column name="commentaire"/>
     </createIndex>
   </changeSet>
-  <changeset author="doctrine-migrations-liquibase" id="create-table-reservedkeywords">
-    <createtable tablename="ReservedKeywords">
+  <changeSet author="doctrine-migrations-liquibase" id="create-table-ReservedKeywords">
+    <createTable tableName="ReservedKeywords">
       <column name="id" type="int">
-        <constraints nullable="false" primarykey="true"/>
+        <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="from" type="date">
         <constraints nullable="false"/>
@@ -150,8 +168,8 @@ EOT;
       <column name="to" type="datetime">
         <constraints nullable="false"/>
       </column>
-    </createtable>
-  </changeset>
+    </createTable>
+  </changeSet>
 </databaseChangeLog>
 
 EOT;

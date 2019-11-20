@@ -1,13 +1,12 @@
 <?php
 
-namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
+namespace Tests\Toilal\Doctrine\Migrations\Liquibase\Database;
 
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use PHPUnit\Framework\TestCase;
-use Toilal\Doctrine\Migrations\Liquibase\LiquibaseDOMDocumentOuput;
 use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 use Toilal\Doctrine\Migrations\Liquibase\LiquibaseSchemaTool;
 
@@ -17,8 +16,10 @@ abstract class AbstractDatabaseTest extends TestCase
     protected $em;
 
     /**
-     * @return array
+     * @var array
      */
+    protected $databaseState = [];
+
     abstract protected function getConnectionParameters();
 
     /**
@@ -27,10 +28,25 @@ abstract class AbstractDatabaseTest extends TestCase
     abstract protected function getEntitiesPath();
 
     /**
+     * Setup database;
+     */
+    protected function setUpDatabase()
+    {
+    }
+
+    /**
+     * Teardown database
+     */
+    protected function tearDownDatabase()
+    {
+    }
+
+    /**
      * @throws \Doctrine\ORM\ORMException
      */
     protected function setUp()
     {
+        $this->setUpDatabase();
         $config = new Configuration();
 
         $config->setAutoGenerateProxyClasses(true);
@@ -40,11 +56,10 @@ abstract class AbstractDatabaseTest extends TestCase
         $config->setQueryCacheImpl(new ArrayCache());
         $config->setMetadataCacheImpl(new ArrayCache());
 
-        $driver = $config->newDefaultAnnotationDriver(join('/', [dirname(__FILE__), $this->getEntitiesPath()]), false);
+        $driver = $config->newDefaultAnnotationDriver([join('/', [dirname(__FILE__), '..', $this->getEntitiesPath()])], false);
         $config->setMetadataDriverImpl($driver);
 
         $params = $this->getConnectionParameters();
-
         $this->em = EntityManager::create($params, $config);
     }
 
@@ -60,8 +75,8 @@ abstract class AbstractDatabaseTest extends TestCase
         $output = $schemaTool->changeLog($options)->saveXML();
         return $output;
     }
-    
-        /**
+
+    /**
      * @param LiquibaseOutputOptions|null $options
      * @return string
      *
@@ -76,6 +91,7 @@ abstract class AbstractDatabaseTest extends TestCase
 
     protected function tearDown()
     {
+        $this->tearDownDatabase();
         $this->em->close();
     }
 }

@@ -1,29 +1,25 @@
 <?php
 
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
+
+use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractPostgreSQLTest;
 use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 
 /**
  * @group docker
  */
-class PostgreSQL10Test extends AbstractDatabaseTest
+class PostgreSQL10Test extends AbstractPostgreSQLTest
 {
-    protected function getConnectionParameters()
+    public function getDockerImage()
     {
-        return [
-            'driver' => 'pdo_pgsql',
-            'dbname' => 'test',
-            'user' => 'test',
-            'password' => 'test',
-            'host' => 'postgres-10',
-        ];
+        return 'postgres:10';
     }
-    
+
     protected function getEntitiesPath()
     {
         return 'Entity';
     }
-    
+
     /**
      * @throws \Doctrine\ORM\ORMException
      */
@@ -72,10 +68,10 @@ class PostgreSQL10Test extends AbstractDatabaseTest
       <column name="commentaire"/>
     </createIndex>
   </changeSet>
-  <changeset author="doctrine-migrations-liquibase" id="create-table-reservedkeywords">
-    <createtable tablename="ReservedKeywords">
+  <changeSet author="doctrine-migrations-liquibase" id="create-table-ReservedKeywords">
+    <createTable tableName="ReservedKeywords">
       <column name="id" type="int">
-        <constraints nullable="false" primarykey="true"/>
+        <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="from" type="date">
         <constraints nullable="false"/>
@@ -83,15 +79,15 @@ class PostgreSQL10Test extends AbstractDatabaseTest
       <column name="to" type="datetime">
         <constraints nullable="false"/>
       </column>
-    </createtable>
-  </changeset>
+    </createTable>
+  </changeSet>
 </databaseChangeLog>
 
 EOT;
 
         self::assertXmlStringEqualsXmlString($expected, $output);
     }
-    
+
     /**
      * @throws \Doctrine\ORM\ORMException
      */
@@ -137,10 +133,10 @@ EOT;
       <column name="commentaire"/>
     </createIndex>
   </changeSet>
-  <changeset author="doctrine-migrations-liquibase" id="create-table-reservedkeywords">
-    <createtable tablename="ReservedKeywords">
+  <changeSet author="doctrine-migrations-liquibase" id="create-table-ReservedKeywords">
+    <createTable tableName="ReservedKeywords">
       <column name="id" type="int">
-        <constraints nullable="false" primarykey="true"/>
+        <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="from" type="date">
         <constraints nullable="false"/>
@@ -148,8 +144,8 @@ EOT;
       <column name="to" type="datetime">
         <constraints nullable="false"/>
       </column>
-    </createtable>
-  </changeset>
+    </createTable>
+  </changeSet>
 </databaseChangeLog>
 
 EOT;

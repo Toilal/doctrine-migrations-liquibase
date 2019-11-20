@@ -8,11 +8,11 @@ use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 /**
  * @group docker
  */
-class PostgreSQL9Test extends AbstractPostgreSQLTest
+class PostgreSQL11Test extends AbstractPostgreSQLTest
 {
     public function getDockerImage()
     {
-        return 'postgres:9';
+        return 'postgres:11';
     }
 
     protected function getEntitiesPath()

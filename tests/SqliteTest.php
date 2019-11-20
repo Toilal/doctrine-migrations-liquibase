@@ -3,6 +3,7 @@
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
 
 
+use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractDatabaseTest;
 use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 
 class SqliteTest extends AbstractDatabaseTest
@@ -68,10 +69,10 @@ class SqliteTest extends AbstractDatabaseTest
       <column name="commentaire"/>
     </createIndex>
   </changeSet>
-  <changeset author="doctrine-migrations-liquibase" id="create-table-reservedkeywords">
-    <createtable tablename="ReservedKeywords">
+  <changeSet author="doctrine-migrations-liquibase" id="create-table-ReservedKeywords">
+    <createTable tableName="ReservedKeywords">
       <column name="id" type="int">
-        <constraints nullable="false" primarykey="true"/>
+        <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="from" type="date">
         <constraints nullable="false"/>
@@ -79,8 +80,8 @@ class SqliteTest extends AbstractDatabaseTest
       <column name="to" type="datetime">
         <constraints nullable="false"/>
       </column>
-    </createtable>
-  </changeset>
+    </createTable>
+  </changeSet>
 </databaseChangeLog>
 
 EOT;
@@ -133,10 +134,10 @@ EOT;
       <column name="commentaire"/>
     </createIndex>
   </changeSet>
-  <changeset author="doctrine-migrations-liquibase" id="create-table-reservedkeywords">
-    <createtable tablename="ReservedKeywords">
+  <changeSet author="doctrine-migrations-liquibase" id="create-table-ReservedKeywords">
+    <createTable tableName="ReservedKeywords">
       <column name="id" type="int">
-        <constraints nullable="false" primarykey="true"/>
+        <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="from" type="date">
         <constraints nullable="false"/>
@@ -144,8 +145,8 @@ EOT;
       <column name="to" type="datetime">
         <constraints nullable="false"/>
       </column>
-    </createtable>
-  </changeset>
+    </createTable>
+  </changeSet>
 </databaseChangeLog>
 
 EOT;

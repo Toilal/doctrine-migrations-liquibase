@@ -33,11 +33,11 @@ class LiquibaseSchemaTool extends SchemaTool
     private function sanitizeOutputParameter($output = null)
     {
         if ($output instanceof LiquibaseOutputOptions) {
-            return new LiquibaseDOMDocumentOuput($output);
+            return new LiquibaseDOMDocumentOutput($output);
         } else if ($output instanceof LiquibaseOutput) {
             return $output;
         }
-        return new LiquibaseDOMDocumentOuput();
+        return new LiquibaseDOMDocumentOutput();
     }
 
     /**

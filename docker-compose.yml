@@ -1,33 +1,6 @@
+# This docker-compose should be up to run tests
 version: "2"
 services:
-  php:
-    build:
-      context: .docker
-      dockerfile: php/Dockerfile
-    environment:
-      - XDEBUG_CONFIG=idekey=remote-debug remote_host=${HOST_IP}
-    volumes:
-      - ".:/var/www/html"
-      - "composer-cache:/composer/cache"
-  php5:
-    build:
-      context: .docker
-      dockerfile: php5/Dockerfile
-    environment:
-      - XDEBUG_CONFIG=idekey=remote-debug remote_host=${HOST_IP}
-    volumes:
-      - ".:/var/www/html"
-      - "composer-cache-php5:/composer/cache"
-  phpstorm-interpreter:
-    build:
-      context: .docker
-      dockerfile: php/Dockerfile
-    entrypoint: php
-    environment:
-      XDEBUG_CONFIG: "idekey=remote-debug remote_host=${HOST_IP}"
-    volumes:
-      - ".:/var/www/html"
-      - "composer-cache:/composer/cache"
   postgres-10:
     image: postgres:10
     environment:
@@ -40,15 +13,16 @@ services:
       - POSTGRES_USER=test
     volumes:
       - "postgresql-9:/var/lib/postgresql/data"
-  mysql:
+  mysql-5:
     image: mysql:5.7
     environment:
       - MYSQL_ROOT_PASSWORD=test
       - MYSQL_DATABASE=test
       - MYSQL_USER=test
       - MYSQL_PASSWORD=test
+    volumes:
+      - "mysql-5:/var/lib/mysql"
 volumes:
-  composer-cache-php5: ~
-  composer-cache: ~
   postgresql-10: ~
   postgresql-9: ~
+  mysql-5: ~
