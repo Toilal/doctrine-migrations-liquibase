@@ -10,22 +10,29 @@
         }
     ],
     "autoload": {
-        "psr-4": { "Toilal\\Doctrine\\Migrations\\Liquibase\\": "src/" }
+        "psr-4": {
+            "Toilal\\Doctrine\\Migrations\\Liquibase\\": "src/"
+        }
     },
     "autoload-dev": {
-        "psr-4": { "Tests\\Toilal\\Doctrine\\Migrations\\Liquibase\\": "tests/" }
+        "psr-4": {
+            "Tests\\Toilal\\Doctrine\\Migrations\\Liquibase\\": "tests/integration"
+        }
     },
     "require": {
-        "php": ">=5.6",
+        "php": "^7.4 || ^8.0",
         "doctrine/orm": "^2"
     },
     "require-dev": {
-        "php": ">=7",
-        "phpstan/phpstan": "^0",
-        "phpunit/phpunit": "^6"
+        "phpunit/phpunit": "^7.0",
+        "thomasweinert/phpunit-xpath-assertions": "^2.0",
+        "phpspec/prophecy-phpunit": "^1.0",
+        "vimeo/psalm": "^4.10",
+        "doctrine/cache": "^2.1"
     },
     "scripts": {
-      "lint": "phpstan analyze src tests --level=max -c phpstan.neon",
-      "test": "phpunit"
+        "lint": "psalm --no-cache",
+        "test": "phpunit --testsuite=unit --verbose",
+        "integration": "phpunit --testsuite=integration --verbose"
     }
 }

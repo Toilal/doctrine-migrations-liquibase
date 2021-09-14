@@ -1,21 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
 
-use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractPostgreSQLTest;
+use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractMySQLTest;
 use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 
 /**
  * @group docker
  */
-class PostgreSQL9Test extends AbstractPostgreSQLTest
+class MySQLTest extends Database\AbstractDatabaseTest
 {
-    public function getDockerImage()
+
+    public function getConnectionParameters(): array
     {
-        return 'postgres:9';
+        return [
+            'driver'        => 'pdo_mysql',
+            'host'          => getenv('MYSQL_HOSTNAME'),
+            'port'          => getenv('MYSQL_PORT'),
+            'dbname'        => getenv('MYSQL_DATABASE'),
+            'user'          => getenv('MYSQL_USER'),
+            'password'      => getenv('MYSQL_PASSWORD'),
+            'charset'       => 'utf8',
+            'serverVersion' => getenv('MYSQL_VERSION'),
+        ];
     }
 
-    protected function getEntitiesPath()
+    protected function getEntitiesPath(): string
     {
         return 'Entity';
     }
@@ -23,17 +35,17 @@ class PostgreSQL9Test extends AbstractPostgreSQLTest
     /**
      * @throws \Doctrine\ORM\ORMException
      */
-    public function testCreateWithDefaultOptions()
+    public function testCreateWithDefaultOptions(): void
     {
         $options = new LiquibaseOutputOptions();
         $options->setChangeSetUniqueId(false);
-        $output = $this->changeLog($options);
+        $output  = $this->changeLog($options);
 
         $expected = <<<'EOT'
 <?xml version="1.0"?>
 <databaseChangeLog>
-  <changeSet author="doctrine-migrations-liquibase" id="create-schema-test">
-    <sql>CREATE SCHEMA test</sql>
+  <changeSet author="doctrine-migrations-liquibase" id="create-schema-testdb">
+    <sql>CREATE SCHEMA `testdb`</sql>
   </changeSet>
   <changeSet author="doctrine-migrations-liquibase" id="create-table-Bar">
     <createTable tableName="Bar">
@@ -91,11 +103,11 @@ EOT;
     /**
      * @throws \Doctrine\ORM\ORMException
      */
-    public function testUpdateFromEmptyDatabaseWithDefaultOptions()
+    public function testUpdateFromEmptyDatabaseWithDefaultOptions(): void
     {
         $options = new LiquibaseOutputOptions();
         $options->setChangeSetUniqueId(false);
-        $output = $this->diffChangeLog($options);
+        $output  = $this->diffChangeLog($options);
 
         $expected = <<<'EOT'
 <?xml version="1.0"?>
@@ -152,4 +164,5 @@ EOT;
 
         self::assertXmlStringEqualsXmlString($expected, $output);
     }
+
 }

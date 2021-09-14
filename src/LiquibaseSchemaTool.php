@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Toilal\Doctrine\Migrations\Liquibase;
 
 use Doctrine\DBAL\Schema\Comparator;
@@ -7,30 +9,27 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\ORM\EntityManagerInterface;
+use DOMDocument;
 
 class LiquibaseSchemaTool extends SchemaTool
 {
-    /**
-     * @var \Doctrine\ORM\EntityManagerInterface
-     */
-    private $em;
+
+    private EntityManagerInterface $em;
 
     /**
      * LiquibaseSchemaTool constructor.
-     * @param \Doctrine\ORM\EntityManagerInterface $em
      */
-    public function __construct($em)
+    public function __construct(EntityManagerInterface $em)
     {
         parent::__construct($em);
         $this->em = $em;
     }
 
     /**
-     * @param LiquibaseOutput|LiquibaseOutputOptions|null $output $output
-     *
-     * @return LiquibaseOutput
+     * @param LiquibaseOutput|LiquibaseOutputOptions|null $output
      */
-    private function sanitizeOutputParameter($output = null)
+    private function sanitizeOutputParameter(object $output = null): LiquibaseOutput
     {
         if ($output instanceof LiquibaseOutputOptions) {
             return new LiquibaseDOMDocumentOutput($output);
@@ -40,19 +39,12 @@ class LiquibaseSchemaTool extends SchemaTool
         return new LiquibaseDOMDocumentOutput();
     }
 
-    /**
-     * @param array|null $metadata $metadata
-     *
-     * @return array
-     */
-    private function sanitizeMetadatas($metadata = null)
+    private function sanitizeMetadatas(?array $metadata = null): array
     {
         if (!$metadata) {
             $metadata = $this->em->getMetadataFactory()->getAllMetadata();
         }
-        usort($metadata, function ($a, $b) {
-            /** @var ClassMetadata $a */
-            /** @var ClassMetadata $b */
+        usort($metadata, function (ClassMetadata $a, ClassMetadata $b) {
             return strcmp($a->getName(), $b->getName());
         });
         return $metadata;
@@ -66,16 +58,16 @@ class LiquibaseSchemaTool extends SchemaTool
      * @return \DOMDocument|mixed
      * @throws \Doctrine\ORM\ORMException
      */
-    public function diffChangeLog($output = null, $metadata = null)
+    public function diffChangeLog(?object $output = null, ?array $metadata = null)
     {
-        $output = $this->sanitizeOutputParameter($output);
+        $output   = $this->sanitizeOutputParameter($output);
         $metadata = $this->sanitizeMetadatas($metadata);
 
         $sm = $this->em->getConnection()->getSchemaManager();
 
         $fromSchema = $sm->createSchema();
         $this->removeLiquibaseTables($fromSchema);
-        $toSchema = $this->getSchemaFromMetadata($metadata);
+        $toSchema   = $this->getSchemaFromMetadata($metadata);
 
         $comparator = new Comparator();
         $schemaDiff = $comparator->compare($fromSchema, $toSchema);
@@ -93,10 +85,10 @@ class LiquibaseSchemaTool extends SchemaTool
      */
     public function changeLog($output = null, $metadata = null)
     {
-        $output = $this->sanitizeOutputParameter($output);
+        $output   = $this->sanitizeOutputParameter($output);
         $metadata = $this->sanitizeMetadatas($metadata);
 
-        $schema = $this->getSchemaFromMetadata($metadata);
+        $schema           = $this->getSchemaFromMetadata($metadata);
         $liquibaseVisitor = new LiquibaseSchemaVisitor($output);
         $output->started($this->em);
         $schema->visit($liquibaseVisitor);
@@ -108,11 +100,10 @@ class LiquibaseSchemaTool extends SchemaTool
     /**
      * Generate a diff changelog from SchemaDiff object.
      *
-     * @param SchemaDiff $schemaDiff
      * @param LiquibaseOutput|LiquibaseOutputOptions|null $output
-     * @return \DOMDocument|mixed
+     * @return DOMDocument|mixed
      */
-    public function diffChangeLogFromSchemaDiff(SchemaDiff $schemaDiff, $output = null)
+    public function diffChangeLogFromSchemaDiff(SchemaDiff $schemaDiff, object $output = null)
     {
         $output = $this->sanitizeOutputParameter($output);
 
@@ -140,7 +131,7 @@ class LiquibaseSchemaTool extends SchemaTool
 
         foreach ($schemaDiff->newTables as $table) {
             $output->createTable($table);
-            
+
             foreach ($table->getForeignKeys() as $foreignKey) {
                 $output->createForeignKey($foreignKey, $table);
             }
@@ -159,7 +150,7 @@ class LiquibaseSchemaTool extends SchemaTool
         return $output->getResult();
     }
 
-    private function removeLiquibaseTables(Schema $fromSchema)
+    private function removeLiquibaseTables(Schema $fromSchema): void
     {
         // TODO: Make those table names configurable
         if ($fromSchema->hasTable('liquibase')) {
@@ -169,4 +160,5 @@ class LiquibaseSchemaTool extends SchemaTool
             $fromSchema->dropTable('liquibase_lock');
         }
     }
+
 }

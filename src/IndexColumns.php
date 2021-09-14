@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Toilal\Doctrine\Migrations\Liquibase;
 
 use Doctrine\DBAL\Schema\Index;
@@ -7,20 +9,21 @@ use Doctrine\DBAL\Schema\Table;
 
 class IndexColumns
 {
+
     /**
      * @var string[]
      */
-    private $primaryColumns = [];
+    private array $primaryColumns = [];
 
     /**
      * @var Index[]
      */
-    private $otherIndexes = [];
+    private array $otherIndexes = [];
 
     /**
      * @var Index[]
      */
-    private $uniqueColumns = [];
+    private array $uniqueColumns = [];
 
     /**
      * IndexColumns constructor.
@@ -43,7 +46,7 @@ class IndexColumns
     /**
      * @return string[]
      */
-    public function getPrimaryColumns()
+    public function getPrimaryColumns(): array
     {
         return $this->primaryColumns;
     }
@@ -51,7 +54,7 @@ class IndexColumns
     /**
      * @return Index[]
      */
-    public function getUniqueColumns()
+    public function getUniqueColumns(): array
     {
         return $this->uniqueColumns;
     }
@@ -59,13 +62,14 @@ class IndexColumns
     /**
      * @return Index[]
      */
-    public function getOtherIndexes()
+    public function getOtherIndexes(): array
     {
         return $this->otherIndexes;
     }
 
-    public function getPrimaryKeyColumns()
+    public function getPrimaryKeyColumns(): array
     {
         return $this->primaryColumns;
     }
+
 }

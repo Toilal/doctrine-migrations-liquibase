@@ -1,44 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
 
-use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractMySQLTest;
+use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractDatabaseTest;
 use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 
-
-/**
- * @group docker
- */
-class MySQL5Test extends AbstractMySQLTest
+class SqliteTest extends AbstractDatabaseTest
 {
-    public function getDockerImage()
+
+    protected function getConnectionParameters(): array
     {
-        return 'mysql:5';
+        return [
+            'driver' => 'pdo_sqlite',
+            'memory' => true,
+        ];
     }
 
-    public function getDockerPublishedPort()
-    {
-        return 3306;
-    }
-
-    public function getDockerRunOpts()
-    {
-        return '--health-cmd "mysqladmin ping -h 127.0.0.1 -u test --password=test" --health-interval 1s --health-timeout 5s --health-retries 3 --health-start-period 1s';
-    }
-
-    public function getConnectionParameters()
-    {
-        $connectionParameters = parent::getConnectionParameters();
-        $env = $this->getDockerEnvironmentVariables();
-
-        return array_merge($connectionParameters, [
-            'driver' => 'pdo_mysql',
-            'dbname' => $env['MYSQL_DATABASE'],
-            'user' => $env['MYSQL_USER'],
-            'password' => $env['MYSQL_PASSWORD']]);
-    }
-
-    protected function getEntitiesPath()
+    protected function getEntitiesPath(): string
     {
         return 'Entity';
     }
@@ -46,17 +26,17 @@ class MySQL5Test extends AbstractMySQLTest
     /**
      * @throws \Doctrine\ORM\ORMException
      */
-    public function testCreateWithDefaultOptions()
+    public function testCreateWithDefaultOptions(): void
     {
         $options = new LiquibaseOutputOptions();
         $options->setChangeSetUniqueId(false);
-        $output = $this->changeLog($options);
+        $output  = $this->changeLog($options);
 
         $expected = <<<'EOT'
 <?xml version="1.0"?>
 <databaseChangeLog>
-  <changeSet author="doctrine-migrations-liquibase" id="create-schema-test">
-    <sql>CREATE SCHEMA `test`</sql>
+  <changeSet author="doctrine-migrations-liquibase" id="create-schema-public">
+    <sql>CREATE SCHEMA `public`</sql>
   </changeSet>
   <changeSet author="doctrine-migrations-liquibase" id="create-table-Bar">
     <createTable tableName="Bar">
@@ -110,16 +90,15 @@ EOT;
 
         self::assertXmlStringEqualsXmlString($expected, $output);
     }
-
 
     /**
      * @throws \Doctrine\ORM\ORMException
      */
-    public function testUpdateFromEmptyDatabaseWithDefaultOptions()
+    public function testUpdateFromEmptyDatabaseWithDefaultOptions(): void
     {
         $options = new LiquibaseOutputOptions();
         $options->setChangeSetUniqueId(false);
-        $output = $this->diffChangeLog($options);
+        $output  = $this->diffChangeLog($options);
 
         $expected = <<<'EOT'
 <?xml version="1.0"?>
@@ -176,4 +155,5 @@ EOT;
 
         self::assertXmlStringEqualsXmlString($expected, $output);
     }
+
 }

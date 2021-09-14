@@ -1,7 +1,8 @@
 <?php
 
-namespace Toilal\Doctrine\Migrations\Liquibase;
+declare(strict_types=1);
 
+namespace Toilal\Doctrine\Migrations\Liquibase;
 
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Sequence;
@@ -12,81 +13,27 @@ use Doctrine\ORM\EntityManagerInterface;
 interface LiquibaseOutput
 {
 
-    /**
-     * @param string $newNamespace
-     *
-     * @return void
-     */
-    public function createSchema($newNamespace);
+    public function createSchema(string $newNamespace): void;
 
-    /**
-     * @param ForeignKeyConstraint $orphanedForeignKey
-     * @param Table $localTable
-     *
-     * @return void
-     */
-    public function dropForeignKey($orphanedForeignKey, $localTable);
+    public function dropForeignKey(ForeignKeyConstraint $orphanedForeignKey, Table $localTable): void;
 
-    /**
-     * @param Sequence $sequence
-     *
-     * @return void
-     */
-    public function alterSequence($sequence);
+    public function alterSequence(Sequence $sequence): void;
 
-    /**
-     * @param Sequence $sequence
-     *
-     * @return void
-     */
-    public function dropSequence($sequence);
+    public function dropSequence(Sequence $sequence): void;
 
-    /**
-     * @param Sequence $sequence
-     *
-     * @return void
-     */
-    public function createSequence($sequence);
+    public function createSequence(Sequence $sequence): void;
 
-    /**
-     * @param Table $table
-     *
-     * @return void
-     */
-    public function createTable($table);
+    public function createTable(Table $table): void;
 
-    /**
-     * @param ForeignKeyConstraint $foreignKey
-     * @param Table $table
-     *
-     * @return void
-     */
-    public function createForeignKey($foreignKey, $table);
+    public function createForeignKey(ForeignKeyConstraint $foreignKey, Table $table): void;
 
-    /**
-     * @param Table $table
-     *
-     * @return void
-     */
-    public function dropTable($table);
+    public function dropTable(Table $table): void;
 
-    /**
-     * @param TableDiff $tableDiff
-     *
-     * @return void
-     */
-    public function alterTable($tableDiff);
+    public function alterTable(TableDiff $tableDiff): void;
 
-    /**
-     * @param EntityManagerInterface $em
-     * @return void
-     */
-    public function started($em);
+    public function started(EntityManagerInterface $em): void;
 
-    /**
-     * @return void
-     */
-    public function terminated();
+    public function terminated(): void;
 
     /**
      * @return mixed

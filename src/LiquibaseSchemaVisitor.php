@@ -1,7 +1,8 @@
 <?php
 
-namespace Toilal\Doctrine\Migrations\Liquibase;
+declare(strict_types=1);
 
+namespace Toilal\Doctrine\Migrations\Liquibase;
 
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
@@ -13,82 +14,42 @@ use Doctrine\DBAL\Schema\Visitor\Visitor;
 
 class LiquibaseSchemaVisitor implements Visitor
 {
-    /**
-     * @var LiquibaseOutput
-     */
-    private $output;
 
-    /**
-     * LiquibaseSchemaVisitor constructor.
-     *
-     * @param LiquibaseOutput $output
-     */
+    private LiquibaseOutput $output;
+
     public function __construct(LiquibaseOutput $output)
     {
         $this->output = $output;
     }
 
-
-    /**
-     * @param \Doctrine\DBAL\Schema\Schema $schema
-     *
-     * @return void
-     */
-    public function acceptSchema(Schema $schema)
+    public function acceptSchema(Schema $schema): void
     {
         $this->output->createSchema($schema->getName());
     }
 
-    /**
-     * @param \Doctrine\DBAL\Schema\Table $table
-     *
-     * @return void
-     */
-    public function acceptTable(Table $table)
+    public function acceptTable(Table $table): void
     {
         $this->output->createTable($table);
     }
 
-    /**
-     * @param \Doctrine\DBAL\Schema\Table $table
-     * @param \Doctrine\DBAL\Schema\Column $column
-     *
-     * @return void
-     */
-    public function acceptColumn(Table $table, Column $column)
+    public function acceptColumn(Table $table, Column $column): void
     {
         // do nothing. Columns are created with table.
     }
 
-    /**
-     * @param \Doctrine\DBAL\Schema\Table $localTable
-     * @param \Doctrine\DBAL\Schema\ForeignKeyConstraint $fkConstraint
-     *
-     * @return void
-     */
-    public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint)
+    public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint): void
     {
         $this->output->createForeignKey($fkConstraint, $localTable);
     }
 
-    /**
-     * @param \Doctrine\DBAL\Schema\Table $table
-     * @param \Doctrine\DBAL\Schema\Index $index
-     *
-     * @return void
-     */
-    public function acceptIndex(Table $table, Index $index)
+    public function acceptIndex(Table $table, Index $index): void
     {
         // do nothing. Indexes are created with table
     }
 
-    /**
-     * @param \Doctrine\DBAL\Schema\Sequence $sequence
-     *
-     * @return void
-     */
-    public function acceptSequence(Sequence $sequence)
+    public function acceptSequence(Sequence $sequence): void
     {
         $this->output->createSequence($sequence);
     }
+
 }

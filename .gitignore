@@ -5,3 +5,4 @@ composer-php5.lock
 vendor/
 phpunit.xml
 .docker/.ca-certificates
+.phpunit.result.cache

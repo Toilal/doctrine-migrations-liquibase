@@ -1,73 +1,44 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Toilal\Doctrine\Migrations\Liquibase;
 
 class LiquibaseOutputOptions
 {
-    /**
-     * @var bool
-     */
-    private $usePlatformTypes = false;
 
-    /**
-     * @var bool
-     */
-    private $changeSetUniqueId = true;
+    private bool $usePlatformTypes  = false;
+    private bool $changeSetUniqueId = true;
+    private string $changeSetAuthor   = 'doctrine-migrations-liquibase';
 
-    /**
-     * @var string
-     */
-    private $changeSetAuthor = 'doctrine-migrations-liquibase';
-
-    /**
-     * @return bool
-     */
-    public function isUsePlatformTypes()
+    public function isUsePlatformTypes(): bool
     {
         return $this->usePlatformTypes;
     }
 
-    /**
-     * @param bool $usePlatformTypes
-     * @return LiquibaseOutputOptions
-     */
-    public function setUsePlatformTypes($usePlatformTypes)
+    public function setUsePlatformTypes(bool $usePlatformTypes): self
     {
         $this->usePlatformTypes = $usePlatformTypes;
         return $this;
     }
 
-    /**
-     * @return bool
-     */
-    public function isChangeSetUniqueId()
+    public function isChangeSetUniqueId(): bool
     {
         return $this->changeSetUniqueId;
     }
 
-    /**
-     * @param bool $changeSetUniqueId
-     * @return LiquibaseOutputOptions
-     */
-    public function setChangeSetUniqueId($changeSetUniqueId)
+    public function setChangeSetUniqueId(bool $changeSetUniqueId): self
     {
         $this->changeSetUniqueId = $changeSetUniqueId;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getChangeSetAuthor()
+    public function getChangeSetAuthor(): string
     {
         return $this->changeSetAuthor;
     }
 
-    /**
-     * @param string $changeSetAuthor
-     * @return LiquibaseOutputOptions
-     */
-    public function setChangeSetAuthor($changeSetAuthor)
+    public function setChangeSetAuthor(string $changeSetAuthor): self
     {
         $this->changeSetAuthor = $changeSetAuthor;
         return $this;

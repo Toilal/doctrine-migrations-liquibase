@@ -2,13 +2,38 @@
 
 <!-- https://phpunit.de/manual/current/en/appendixes.configuration.html -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.8/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/7.0/phpunit.xsd"
          backupGlobals="false"
-         colors="true"
-         bootstrap="vendor/autoload.php">
+         colors="true">
+
     <testsuites>
-        <testsuite name="Project Test Suite">
-            <directory>./tests</directory>
+        <testsuite name="unit">
+            <directory>./tests/units/src</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>./tests/integration</directory>
         </testsuite>
     </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">src/</directory>
+        </whitelist>
+    </filter>
+
+    <php>
+        <env name="POSTGRES_HOSTNAME" value="localhost" force="false" />
+        <env name="POSTGRES_PORT" value="5432" force="false" />
+        <env name="POSTGRES_USER" value="test" force="false" />
+        <env name="POSTGRES_PASSWORD" value="test" force="false" />
+        <env name="POSTGRES_DB" value="testdb" force="false" />
+
+        <env name="MYSQL_HOSTNAME" value="127.0.0.1" force="false" />
+        <env name="MYSQL_PORT" value="3306" force="false" />
+        <env name="MYSQL_USER" value="test" force="false" />
+        <env name="MYSQL_PASSWORD" value="test" force="false" />
+        <env name="MYSQL_DATABASE" value="testdb" force="false" />
+        <env name="MYSQL_VERSION" value="5.7" force="false" />
+    </php>
+
 </phpunit>

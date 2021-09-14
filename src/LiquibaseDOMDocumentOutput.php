@@ -1,7 +1,8 @@
 <?php
 
-namespace Toilal\Doctrine\Migrations\Liquibase;
+declare(strict_types=1);
 
+namespace Toilal\Doctrine\Migrations\Liquibase;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -12,72 +13,61 @@ use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\ORM\EntityManagerInterface;
+use DOMDocument;
+use DOMElement;
 
 class LiquibaseDOMDocumentOutput implements LiquibaseOutput
 {
-    /**
-     * @var \DOMDocument
-     */
-    private $document;
 
-    /** @var LiquibaseOutputOptions */
-    private $options;
-
-    /** @var AbstractPlatform */
-    private $platform;
-
-    /**
-     * @var \DOMElement
-     */
-    private $root;
-
+    private DOMDocument $document;
+    private LiquibaseOutputOptions $options;
+    private AbstractPlatform $platform;
+    private DOMElement $root;
 
     /**
      * LiquibaseDOMDocumentOuput constructor.
-     *
-     * @param LiquibaseOutputOptions|null $options
-     * @param \DOMDocument|null $document
      */
-    public function __construct($options = null, $document = null)
+    public function __construct(?LiquibaseOutputOptions $options = null, ?DOMDocument $document = null)
     {
-        if (!$options) {
+        if (null === $options) {
             $options = new LiquibaseOutputOptions();
         }
+
         $this->options = $options;
 
-        if (!$document) {
-            $document = new \DOMDocument();
+        if (null === $document) {
+            $document                     = new DOMDocument();
             $document->preserveWhiteSpace = false;
-            $document->formatOutput = true;
-            $this->document = $document;
+            $document->formatOutput       = true;
+            $this->document               = $document;
         } else {
             $this->document = $document;
         }
+
+        $this->root     = $this->document->createElement('databaseChangeLog');
+        $this->platform = new MySqlPlatform();
     }
 
-    /**
-     * @return \DOMDocument
-     */
-    public function getDocument()
+    public function getDocument(): DOMDocument
     {
         return $this->document;
     }
 
-    /**
-     * @return \DOMDocument
-     */
+    public function getOptions(): LiquibaseOutputOptions
+    {
+        return $this->options;
+    }
+
     public function getResult()
     {
         return $this->document;
     }
 
-    /**
-     * @param string $id
-     * @return \DOMElement
-     */
-    protected function createChangeSet($id)
+    protected function createChangeSet(string $id): DOMElement
     {
-        $changeSet = $this->document->createElement('changeSet');
+        $changeSet   = $this->document->createElement('changeSet');
         $changeSet->setAttribute('author', $this->options->getChangeSetAuthor());
         $sanitizedId = preg_replace('/[_\.]/', '-', $id);
         assert($sanitizedId !== null);
@@ -86,17 +76,11 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         return $changeSet;
     }
 
-
-    /**
-     * @param string $newNamespace
-     *
-     * @return void
-     */
-    public function createSchema($newNamespace)
+    public function createSchema(string $newNamespace): void
     {
         $changeSetElt = $this->createChangeSet('create-schema-' . $newNamespace);
 
-        $sql = NULL;
+        $sql = '';
         try {
             $sql = $this->platform->getCreateSchemaSQL($newNamespace);
         } catch (DBALException $e) {
@@ -112,38 +96,28 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         $this->root->appendChild($changeSetElt);
     }
 
-    /**
-     * @param ForeignKeyConstraint $orphanedForeignKey
-     * @param Table $localTable
-     *
-     * @return void
-     */
-    public function dropForeignKey($orphanedForeignKey, $localTable)
+    public function dropForeignKey(ForeignKeyConstraint $orphanedForeignKey, Table $localTable): void
     {
         $changeSetElt = $this->createChangeSet('drop-foreign-key-' . $orphanedForeignKey->getName());
 
-        $tableName = QualifiedName::fromAsset($localTable);
+        $tableName      = QualifiedName::fromAsset($localTable);
         $foreignKeyName = QualifiedName::fromAsset($orphanedForeignKey);
 
         $dropForeignKeyElement = $this->document->createElement('dropForeignKeyConstraint');
 
-        if ($tableName->getNamespaceName()) {
-            $dropForeignKeyElement->setAttribute('baseTableSchemaName', $tableName->getNamespaceName());
+        $namespaceName = $tableName->getNamespaceName();
+        if (null !== $namespaceName) {
+            $dropForeignKeyElement->setAttribute('baseTableSchemaName', $namespaceName);
         }
-        $dropForeignKeyElement->setAttribute('baseTableName', $tableName->getName());
 
+        $dropForeignKeyElement->setAttribute('baseTableName', $tableName->getName());
         $dropForeignKeyElement->setAttribute('constraintName', $foreignKeyName->getName());
 
         $changeSetElt->appendChild($dropForeignKeyElement);
         $this->root->appendChild($changeSetElt);
     }
 
-    /**
-     * @param Sequence $sequence
-     *
-     * @return void
-     */
-    public function alterSequence($sequence)
+    public function alterSequence(Sequence $sequence): void
     {
         $commentElt = $this->document->createComment(' alterSequence is not supported (sequence: ' . $sequence->getName() . ')');
         $this->root->appendChild($commentElt);
@@ -154,15 +128,16 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
      *
      * @return void
      */
-    public function dropSequence($sequence)
+    public function dropSequence(Sequence $sequence): void
     {
         $changeSetElt = $this->createChangeSet('drop-sequence-' . $sequence->getName());
 
-        $sequenceName = QualifiedName::fromAsset($sequence);
+        $sequenceName    = QualifiedName::fromAsset($sequence);
         $dropSequenceElt = $this->document->createElement('dropSequence');
 
-        if ($sequenceName->getNamespaceName()) {
-            $dropSequenceElt->setAttribute('schemaName', $sequenceName->getNamespaceName());
+        $namespaceName = $sequenceName->getNamespaceName();
+        if (null !== $namespaceName) {
+            $dropSequenceElt->setAttribute('schemaName', $namespaceName);
         }
 
         $dropSequenceElt->setAttribute('sequenceName', $sequenceName->getName());
@@ -171,21 +146,18 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         $this->root->appendChild($changeSetElt);
     }
 
-    /**
-     * @param Sequence $sequence
-     *
-     * @return void
-     */
-    public function createSequence($sequence)
+    public function createSequence(Sequence $sequence): void
     {
         $changeSetElt = $this->createChangeSet('create-sequence-' . $sequence->getName());
 
-        $sequenceName = QualifiedName::fromAsset($sequence);
+        $sequenceName      = QualifiedName::fromAsset($sequence);
         $createSequenceElt = $this->document->createElement('createSequence');
 
-        if ($sequenceName->getNamespaceName()) {
-            $createSequenceElt->setAttribute('schemaName', $sequenceName->getNamespaceName());
+        $namespaceName = $sequenceName->getNamespaceName();
+        if (null !== $namespaceName) {
+            $createSequenceElt->setAttribute('schemaName', $namespaceName);
         }
+
         $createSequenceElt->setAttribute('sequenceName', $sequenceName->getName());
         $createSequenceElt->setAttribute('startValue', strval($sequence->getInitialValue()));
 
@@ -219,42 +191,35 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
             }
         }
 
-        if ($column->getLength() !== null) {
-            $sqlType .= '(' . $column->getLength() . ')';
+        $length = $column->getLength();
+        if ($length !== null) {
+            $sqlType .= '(' . $length . ')';
         };
 
         return $sqlType;
     }
 
-    /**
-     * @param \DOMElement $columnElt
-     * @param Column $column
-     * @param IndexColumns $indexColumns
-     */
-    protected function fillColumnAttributes(\DOMElement $columnElt, Column $column, IndexColumns $indexColumns)
+    protected function fillColumnAttributes(DOMElement $columnElt, Column $column, IndexColumns $indexColumns): void
     {
         $columnName = QualifiedName::fromAsset($column);
         $columnElt->setAttribute('name', $columnName->getName());
         $columnType = $this->getColumnType($column);
         $columnElt->setAttribute('type', $columnType);
-        if ($remarks = $column->getComment()) {
+        if ($remarks    = $column->getComment()) {
             $columnElt->setAttribute('remarks', $remarks);
         }
         if ($defaultValue = $column->getDefault()) {
             $columnElt->setAttribute('defaultValue', $defaultValue);
         }
 
-        $primaryKey = in_array($column->getName(), $indexColumns->getPrimaryKeyColumns());
-        $unique = false;
+        $primaryKey           = in_array($column->getName(), $indexColumns->getPrimaryKeyColumns());
+        $unique               = false;
         $uniqueConstraintName = null;
         if (array_key_exists($column->getName(), $indexColumns->getUniqueColumns())) {
-            $unique = true;
+            $unique               = true;
             $uniqueConstraintName = $indexColumns->getUniqueColumns()[$column->getName()]->getName();
         }
         $nullable = !$column->getNotnull();
-        if (in_array($column, $indexColumns->getPrimaryKeyColumns())) {
-            $primaryKey = true;
-        }
 
         if ($primaryKey || !$nullable || $unique) {
             $constraintsElt = $this->document->createElement('constraints');
@@ -275,20 +240,17 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param Table $table
-     *
-     * @return void
-     */
-    public function createTable($table)
+    public function createTable(Table $table): void
     {
         $changeSetElt = $this->createChangeSet('create-table-' . $table->getName());
 
         $createTableElt = $this->document->createElement('createTable');
 
         $tableName = QualifiedName::fromAsset($table);
-        if ($tableName->getNamespaceName()) {
-            $createTableElt->setAttribute('schemaName', $tableName->getNamespaceName());
+
+        $namespaceName = $tableName->getNamespaceName();
+        if (null !== $namespaceName) {
+            $createTableElt->setAttribute('schemaName', $namespaceName);
         }
         $createTableElt->setAttribute('tableName', $tableName->getName());
 
@@ -307,13 +269,14 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         foreach ($indexColumns->getOtherIndexes() as $index) {
             $createIndexElt = $this->document->createElement('createIndex');
 
-            if ($tableName->getNamespaceName()) {
-                $createIndexElt->setAttribute('schemaName', $tableName->getNamespaceName());
+            $namespaceName = $tableName->getNamespaceName();
+            if (null !== $namespaceName) {
+                $createIndexElt->setAttribute('schemaName', $namespaceName);
             }
             $createIndexElt->setAttribute('tableName', $tableName->getName());
             $createIndexElt->setAttribute('indexName', $index->getName());
             if ($index->isUnique()) {
-                $createIndexElt->setAttribute('unique', $index->isUnique() ? "true" : "false");
+                $createIndexElt->setAttribute('unique', 'true');
             }
 
             foreach ($index->getColumns() as $column) {
@@ -328,41 +291,32 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         $this->root->appendChild($changeSetElt);
     }
 
-    /**
-     * @param \DOMElement $addForeignKeyConstraintElt
-     * @param ForeignKeyConstraint $foreignKey
-     * @param Table $table
-     */
-    protected function fillForeignKeyAttributes(\DOMElement $addForeignKeyConstraintElt, ForeignKeyConstraint $foreignKey, Table $table)
+    protected function fillForeignKeyAttributes(DOMElement $addForeignKeyConstraintElt, ForeignKeyConstraint $foreignKey, Table $table): void
     {
         $addForeignKeyConstraintElt->setAttribute('constraintName', $foreignKey->getName());
 
         $tableName = QualifiedName::fromAsset($table);
 
-        if ($tableName->getNamespaceName()) {
-            $addForeignKeyConstraintElt->setAttribute('baseTableSchemaName', $tableName->getNamespaceName());
+        $namespaceName = $tableName->getNamespaceName();
+        if (null !== $namespaceName) {
+            $addForeignKeyConstraintElt->setAttribute('baseTableSchemaName', $namespaceName);
         }
         $addForeignKeyConstraintElt->setAttribute('baseTableName', $tableName->getName());
         $addForeignKeyConstraintElt->setAttribute('baseColumnNames', implode(',', $foreignKey->getLocalColumns()));
 
         $referencedTableName = QualifiedName::fromQualifiedName($foreignKey->getForeignTableName());
 
-        if ($referencedTableName->getNamespaceName()) {
-            $addForeignKeyConstraintElt->setAttribute('referencedTableSchemaName', $referencedTableName->getNamespaceName());
+        $namespaceName = $referencedTableName->getNamespaceName();
+        if (null !== $namespaceName) {
+            $addForeignKeyConstraintElt->setAttribute('referencedTableSchemaName', $namespaceName);
         }
         $addForeignKeyConstraintElt->setAttribute('referencedTableName', $referencedTableName->getName());
         $addForeignKeyConstraintElt->setAttribute('referencedColumnNames', implode(',', $foreignKey->getForeignColumns()));
     }
 
-    /**
-     * @param ForeignKeyConstraint $foreignKey
-     * @param Table $table
-     *
-     * @return void
-     */
-    public function createForeignKey($foreignKey, $table)
+    public function createForeignKey(ForeignKeyConstraint $foreignKey, Table $table): void
     {
-        $changeSetElt = $this->createChangeSet('create-foreign-keys-' . $table->getName());
+        $changeSetElt               = $this->createChangeSet('create-foreign-keys-' . $table->getName());
         $addForeignKeyConstraintElt = $this->document->createElement('addForeignKeyConstraint');
 
         $this->fillForeignKeyAttributes($addForeignKeyConstraintElt, $foreignKey, $table);
@@ -371,21 +325,18 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         $this->root->appendChild($changeSetElt);
     }
 
-    /**
-     * @param Table $table
-     *
-     * @return void
-     */
-    public function dropTable($table)
+    public function dropTable(Table $table): void
     {
         $changeSetElt = $this->createChangeSet('drop-table-' . $table->getName());
         $dropTableElt = $this->document->createElement('dropTable');
 
         $tableName = QualifiedName::fromAsset($table);
 
-        if ($tableName->getNamespaceName()) {
-            $dropTableElt->setAttribute('schemaName', $tableName->getNamespaceName());
+        $namespaceName = $tableName->getNamespaceName();
+        if (null !== $namespaceName) {
+            $dropTableElt->setAttribute('schemaName', $namespaceName);
         }
+
         $dropTableElt->setAttribute('tableName', $tableName->getName());
         // Should we add cascadeConstraints attribute ?
         // $dropTableElt->setAttribute('cascadeConstraints', 'false');
@@ -395,12 +346,9 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
     }
 
     /**
-     * @param TableDiff $tableDiff
-     *
-     * @return void
      * @throws \Doctrine\DBAL\Schema\SchemaException
      */
-    public function alterTable($tableDiff)
+    public function alterTable(TableDiff $tableDiff): void
     {
         assert($tableDiff->fromTable !== null);
         $changeSetElt = $this->createChangeSet('alter-table-' . $tableDiff->fromTable->getName());
@@ -437,13 +385,7 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         $this->root->appendChild($changeSetElt);
     }
 
-    /**
-     * @param TableDiff $tableDiff
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     * @return QualifiedName
-     */
-    protected function alterTableRenameTable(TableDiff $tableDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    protected function alterTableRenameTable(TableDiff $tableDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt): QualifiedName
     {
         if (is_string($tableDiff->newName) && $fromTableName->getName() !== $tableDiff->newName) {
             $renameTable = $this->document->createElement('renameTable');
@@ -461,14 +403,7 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         return $fromTableName;
     }
 
-    /**
-     * @param TableDiff $tableDiff
-     *
-     * @param QualifiedName $fromTableName
-     * @param IndexColumns $indexColumns
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableAddedColumns(TableDiff $tableDiff, QualifiedName $fromTableName, IndexColumns $indexColumns, \DOMElement $changeSetElt)
+    protected function alterTableAddedColumns(TableDiff $tableDiff, QualifiedName $fromTableName, IndexColumns $indexColumns, \DOMElement $changeSetElt): void
     {
         if ($tableDiff->addedColumns && count($tableDiff->addedColumns)) {
             $addColumnElt = $this->document->createElement('addColumn');
@@ -491,14 +426,9 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
     }
 
     /**
-     * @param TableDiff $tableDiff
-     * @param QualifiedName $fromTableName
-     * @param IndexColumns $indexColumns
-     * @param \DOMElement $changeSetElt
-     *
      * @throws \Doctrine\DBAL\Schema\SchemaException
      */
-    protected function alterTableAddedIndexes(TableDiff $tableDiff, QualifiedName $fromTableName, IndexColumns $indexColumns, \DOMElement $changeSetElt)
+    protected function alterTableAddedIndexes(TableDiff $tableDiff, QualifiedName $fromTableName, IndexColumns $indexColumns, DOMElement $changeSetElt): void
     {
         assert($tableDiff->fromTable !== null);
         foreach ($tableDiff->addedIndexes as $index) {
@@ -529,11 +459,7 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param TableDiff $tableDiff
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableAddedForeignKeys(TableDiff $tableDiff, \DOMElement $changeSetElt)
+    protected function alterTableAddedForeignKeys(TableDiff $tableDiff, DOMElement $changeSetElt): void
     {
         assert($tableDiff->fromTable !== null);
         foreach ($tableDiff->addedForeignKeys as $foreignKey) {
@@ -545,12 +471,7 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param TableDiff $tableDiff
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableRenamedColumns(TableDiff $tableDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    protected function alterTableRenamedColumns(TableDiff $tableDiff, QualifiedName $fromTableName, DOMElement $changeSetElt): void
     {
         foreach ($tableDiff->renamedColumns as $oldName => $column) {
             $renameColumnElt = $this->document->createElement('renameColumn');
@@ -568,12 +489,7 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param TableDiff $tableDiff
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableRenamedIndexes(TableDiff $tableDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    protected function alterTableRenamedIndexes(TableDiff $tableDiff, QualifiedName $fromTableName, DOMElement $changeSetElt): void
     {
         foreach ($tableDiff->renamedIndexes as $oldName => $index) {
             $commentElt = $this->document->createComment(' renameIndex is not supported (index: ' . $oldName . ' => ' . $index->getName() . ')');
@@ -581,12 +497,7 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param TableDiff $tableDiff
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableRemovedColumns(TableDiff $tableDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    protected function alterTableRemovedColumns(TableDiff $tableDiff, QualifiedName $fromTableName, DOMElement $changeSetElt): void
     {
         foreach ($tableDiff->removedColumns as $column) {
             $dropColumnElt = $this->document->createElement('dropColumn');
@@ -603,12 +514,7 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param TableDiff $tableDiff
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableRemovedIndexes(TableDiff $tableDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    protected function alterTableRemovedIndexes(TableDiff $tableDiff, QualifiedName $fromTableName, DOMElement $changeSetElt): void
     {
         foreach ($tableDiff->removedIndexes as $index) {
             $dropIndexElt = $this->document->createElement('dropIndex');
@@ -625,19 +531,13 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param TableDiff $tableDiff
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableRemovedForeignKeys(TableDiff $tableDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    protected function alterTableRemovedForeignKeys(TableDiff $tableDiff, QualifiedName $fromTableName, DOMElement $changeSetElt): void
     {
         foreach ($tableDiff->removedForeignKeys as $foreignKey) {
             $dropForeignKeyConstraintElt = $this->document->createElement('dropForeignKeyConstraint');
 
-
             if (is_string($foreignKey)) {
-                $foreignKeyName = $foreignKey;
+                $foreignKeyName = QualifiedName::fromQualifiedName($foreignKey);
             } else {
                 $foreignKeyName = QualifiedName::fromAsset($foreignKey);
             }
@@ -652,16 +552,10 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param ColumnDiff $columnDiff
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     */
-    private function alterTableChangedColumn(ColumnDiff $columnDiff, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    private function alterTableChangedColumn(ColumnDiff $columnDiff, QualifiedName $fromTableName, DOMElement $changeSetElt): void
     {
-
         $oldColunmName = QualifiedName::fromAsset($columnDiff->getOldColumnName());
-        $columnName = QualifiedName::fromAsset($columnDiff->column);
+        $columnName    = QualifiedName::fromAsset($columnDiff->column);
         if ($oldColunmName->getName() !== $columnName->getName()) {
             $renameColumnElt = $this->document->createElement('renameColumn');
 
@@ -701,51 +595,35 @@ class LiquibaseDOMDocumentOutput implements LiquibaseOutput
         }
     }
 
-    /**
-     * @param Index $index
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableChangedIndex(Index $index, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    protected function alterTableChangedIndex(Index $index, QualifiedName $fromTableName, DOMElement $changeSetElt): void
     {
         $commentElt = $this->document->createComment(' index changes are not supported (index: ' . $index->getName() . ')');
         $changeSetElt->appendChild($commentElt);
     }
 
-
-    /**
-     * @param ForeignKeyConstraint $foreignKey
-     * @param QualifiedName $fromTableName
-     * @param \DOMElement $changeSetElt
-     */
-    protected function alterTableChangedForeignKey(ForeignKeyConstraint $foreignKey, QualifiedName $fromTableName, \DOMElement $changeSetElt)
+    protected function alterTableChangedForeignKey(ForeignKeyConstraint $foreignKey, QualifiedName $fromTableName, DOMElement $changeSetElt): void
     {
         $commentElt = $this->document->createComment(' foreign key changes are not supported (foreignKey: ' . $foreignKey->getName() . ')');
         $changeSetElt->appendChild($commentElt);
     }
 
-    /**
-     * @param \Doctrine\ORM\EntityManagerInterface $em
-     */
-    public function started($em)
+    public function started(EntityManagerInterface $em): void
     {
         $this->platform = $em->getConnection()->getDatabasePlatform();
-        $this->root = $this->document->createElement('databaseChangeLog');
+        $this->root     = $this->document->createElement('databaseChangeLog');
 
         /*
 
-        $this->root->setAttribute('xmlns', 'http://www.liquibase.org/xml/ns/dbchangelog');
-        $this->root->setAttribute('xmlns:ext', 'http://www.liquibase.org/xml/ns/dbchangelog-ext');
-        $this->root->setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
-        $this->root->setAttribute('xsi:schemaLocation', 'http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd');
-    */
+          $this->root->setAttribute('xmlns', 'http://www.liquibase.org/xml/ns/dbchangelog');
+          $this->root->setAttribute('xmlns:ext', 'http://www.liquibase.org/xml/ns/dbchangelog-ext');
+          $this->root->setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+          $this->root->setAttribute('xsi:schemaLocation', 'http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd');
+         */
     }
 
-    /**
-     * @return void
-     */
-    public function terminated()
+    public function terminated(): void
     {
         $this->document->appendChild($this->root);
     }
+
 }

@@ -1,30 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Toilal\Doctrine\Migrations\Liquibase;
 
 use Doctrine\DBAL\Schema\AbstractAsset;
 
 class QualifiedName
 {
-    /**
-     * @var string|null
-     */
-    private $namespaceName;
-    /**
-     * @var string
-     */
-    private $name;
 
+    private ?string $namespaceName = null;
+    private string $name          = '';
 
-    static function fromQualifiedName($qualifiedName)
+    public static function fromQualifiedName(string $qualifiedName): self
     {
         $tableNameArray = explode('.', $qualifiedName, 2);
 
         $namespaceName = null;
-        $name = null;
+        $name          = null;
         if (count($tableNameArray) > 1) {
             $namespaceName = $tableNameArray[0];
-            $name = $tableNameArray[1];
+            $name          = $tableNameArray[1];
         } else {
             $name = $qualifiedName;
         }
@@ -32,7 +28,7 @@ class QualifiedName
         return new QualifiedName($name, $namespaceName);
     }
 
-    static function fromAsset(AbstractAsset $asset)
+    public static function fromAsset(AbstractAsset $asset): self
     {
         $namespaceName = $asset->getNamespaceName();
         if ($namespaceName) {
@@ -43,30 +39,20 @@ class QualifiedName
         return new QualifiedName($name, $namespaceName);
     }
 
-    /**
-     * AssetName constructor.
-     * @param string $name
-     * @param string|null $namespaceName
-     */
-    public function __construct($name, $namespaceName = null)
+    public function __construct(string $name, ?string $namespaceName = null)
     {
-        $this->name = $name;
+        $this->name          = $name;
         $this->namespaceName = $namespaceName;
     }
 
-    /**
-     * @return null|string
-     */
-    public function getNamespaceName()
+    public function getNamespaceName(): ?string
     {
         return $this->namespaceName;
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
+
 }

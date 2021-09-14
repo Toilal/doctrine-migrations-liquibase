@@ -1,22 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Toilal\Doctrine\Migrations\Liquibase;
 
-
-use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractDatabaseTest;
+use Tests\Toilal\Doctrine\Migrations\Liquibase\Database\AbstractPostgreSQLTest;
 use Toilal\Doctrine\Migrations\Liquibase\LiquibaseOutputOptions;
 
-class SqliteTest extends AbstractDatabaseTest
+/**
+ * @group docker
+ */
+class PostgreSQLTest extends Database\AbstractDatabaseTest
 {
-    protected function getConnectionParameters()
+
+    public function getConnectionParameters(): array
     {
         return [
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
+            'driver'   => 'pdo_pgsql',
+            'host'     => getenv('POSTGRES_HOSTNAME'),
+            'port'     => getenv('POSTGRES_PORT'),
+            'dbname'   => getenv('POSTGRES_DB'),
+            'user'     => getenv('POSTGRES_USER'),
+            'password' => getenv('POSTGRES_PASSWORD')
         ];
     }
 
-    protected function getEntitiesPath()
+    protected function getEntitiesPath(): string
     {
         return 'Entity';
     }
@@ -24,17 +33,17 @@ class SqliteTest extends AbstractDatabaseTest
     /**
      * @throws \Doctrine\ORM\ORMException
      */
-    public function testCreateWithDefaultOptions()
+    public function testCreateWithDefaultOptions(): void
     {
         $options = new LiquibaseOutputOptions();
         $options->setChangeSetUniqueId(false);
-        $output = $this->changeLog($options);
+        $output  = $this->changeLog($options);
 
         $expected = <<<'EOT'
 <?xml version="1.0"?>
 <databaseChangeLog>
-  <changeSet author="doctrine-migrations-liquibase" id="create-schema-public">
-    <sql>CREATE SCHEMA `public`</sql>
+  <changeSet author="doctrine-migrations-liquibase" id="create-schema-test">
+    <sql>CREATE SCHEMA test</sql>
   </changeSet>
   <changeSet author="doctrine-migrations-liquibase" id="create-table-Bar">
     <createTable tableName="Bar">
@@ -92,11 +101,11 @@ EOT;
     /**
      * @throws \Doctrine\ORM\ORMException
      */
-    public function testUpdateFromEmptyDatabaseWithDefaultOptions()
+    public function testUpdateFromEmptyDatabaseWithDefaultOptions(): void
     {
         $options = new LiquibaseOutputOptions();
         $options->setChangeSetUniqueId(false);
-        $output = $this->diffChangeLog($options);
+        $output  = $this->diffChangeLog($options);
 
         $expected = <<<'EOT'
 <?xml version="1.0"?>
@@ -153,4 +162,5 @@ EOT;
 
         self::assertXmlStringEqualsXmlString($expected, $output);
     }
+
 }
