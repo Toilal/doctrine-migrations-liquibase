@@ -1,4 +1,7 @@
 # doctrine-migrations-liquibase
+
+**UNMAINTAINED**.[Currently maintained drop-in replacement](https://packagist.org/packages/fabiang/doctrine-migrations-liquibase)
+
 Generate Liquibase ChangeLog from Doctrine Entities.
 
 [![Build Status](https://img.shields.io/travis/Toilal/doctrine-migrations-liquibase.svg?style=flat-square)](https://travis-ci.org/Toilal/doctrine-migrations-liquibase)
